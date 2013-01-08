@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% from '_formhelper.html' import render_field, render_submit %}
+
+{% block content %}
+<form action="{{ request.url }}" class="form-horizontal" method="POST">
+    {{ form.hidden_tag() }}
+    {{ render_field(form.title) }}
+    {{ render_field(form.description) }}
+    {{ render_field(form.category) }}
+    {{ render_field(form.brand) }}
+    {{ render_field(form.size) }}
+    {{ render_field(form.original_price) }}
+    {{ render_field(form.current_price) }}
+    {{ render_field(form.photo) }}
+    {{ render_submit('发布') }}
+</form>
+{% endblock %}
