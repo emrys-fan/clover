@@ -6,7 +6,7 @@ from flask import Flask, g, render_template
 from account.helpers import get_current_user
 from account.views import bp_account
 from item.views import bp_item
-# from comment.views import bp_comment
+from timeline.views import bp_timeline
 
 app = Flask(__name__)
 app.config.from_object('settings')
@@ -21,7 +21,7 @@ app.redis = redis.Redis(
 
 app.register_blueprint(bp_account)
 app.register_blueprint(bp_item)
-# app.register_blueprint(bp_comment)
+app.register_blueprint(bp_timeline)
 
 @app.route('/')
 def index():

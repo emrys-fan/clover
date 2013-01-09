@@ -38,8 +38,7 @@ def show_item(pid):
         abort(404)
     fields = ['id', 'username', 'photo']
     user = current_app.redis.hmget('user:%s'%request_item['uid'], fields)
-    user = dict(zip(fields, user))
-    request_item['user'] = user
+    request_item['user'] = dict(zip(fields, user))
 
     if current_app.redis.zscore('user:%s:like'%g.user['id'], pid):
         request_item['liked'] = True
@@ -76,7 +75,7 @@ def add_comment(pid):
     commentid = current_app.redis.hincrby('system', 'comment_id', 1)
 
     comment = {'text': comment_text,
-            'user':g.user,
+            'uid':g.user['id'],
             'cid': commentid,
             'pid': pid,
             'publish_time':time.strftime('%Y-%m-%dT%H:%M:%S%z')}
@@ -106,6 +105,10 @@ def show_comment(pid):
 
     comments = []
     for commentid in post_commentid_list:
-        comments.append(current_app.redis.hgetall('comment:%s'%commentid))
+        comment = current_app.redis.hgetall('comment:%s' % commentid)
+        fields = ['id', 'username', 'photo']
+        user = current_app.redis.hmget('user:%s'%comment['uid'], fields)
+        comment['user'] = dict(zip(fields, user))
+        comments.append(comment)
 
     return jsonify(comments=comments, since_id=since_id, page=page)

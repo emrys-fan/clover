@@ -1,4 +1,10 @@
 from flask import session, current_app
+from weibo import Client
+
+def get_weibo_client(redirect_url):
+    return Client(current_app.config['WEIBO_CONSUMER_KEY'],
+            current_app.config['WEIBO_CONSUMER_SECRET'],
+            redirect_url)
 
 
 def get_current_user():

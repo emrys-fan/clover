@@ -10,7 +10,7 @@ from flask.ext.wtf.html5 import URLField
 
 class PostForm(Form):
     title = TextField('标题', validators=[Required(), Length(max=70)])
-    description = TextAreaField('简介', validators=[Required(), Length(max=140)])
+    description = TextAreaField('简介', validators=[Required(), Length(max=500)])
     category = TextField('分类', validators=[Length(max=30)])
     brand = TextField('品牌', validators=[Optional()])
     size = TextField('尺码', validators=[Optional()])
@@ -29,6 +29,7 @@ class PostForm(Form):
                 'publish_time': time.strftime('%Y-%m-%dT%H:%M:%S%z'),
                 'title': self.title.data,
                 'description': self.description.data,
+                'photo': self.photo.data,
                 'category': self.data.get('category', 'others'),
                 'brand': self.data.get('brand', 'others'),
                 'size': self.data.get('size', 'unknown'),
@@ -38,8 +39,8 @@ class PostForm(Form):
         current_app.redis.zadd('global_timeline', postid, time.time())
         current_app.redis.zadd('user:%s:timeline'%g.user['id'], postid, time.time())
         current_app.redis.zadd('category:%s'%post['category'], postid, time.time())
-        current_app.redis.zadd('category:%s:size:%s'%(post['category'], post['category']), postid, time.time())
-        current_app.redis.zadd('brand:%s'%post['category'], postid, time.time())
+        current_app.redis.zadd('category:%s:size:%s'%(post['category'], post['size']), postid, time.time())
+        current_app.redis.zadd('brand:%s'%post['brand'], postid, time.time())
 
         followings = current_app.redis.zrevrange('user:%s:following'%g.user['id'], 0, -1)
         for fid in followings:

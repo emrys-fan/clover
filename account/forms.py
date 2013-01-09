@@ -36,12 +36,6 @@ class SignupForm(Form):
         current_app.redis.set('uname:%s:uid'%self.username.data, uid)
         current_app.redis.hmset('user:%s'%uid, user)
 
-        if hasattr(g, 'recommender'):
-            current_app.redis.zadd('user:%s:invited'%g.recommender['id'], user['id'], time.time())
-            current_app.redis.hset('user:%s'%user['id'], 'rid', g.recommender['id'])
-            current_app.redis.hincrby('user:%s'%g.recommender['id'], 'invite_quota_left', -1)
-            session.pop('uid', None)
-
         return user
 
     def validate_csrf_token(self, field):
@@ -87,3 +81,21 @@ class ProfileForm(Form):
 
     def validate_csrf_token(self, field):
         pass
+
+class InvitationForm(Form):
+    username = TextField('邀请人', validators=[Required()])
+
+    def validate_csrf_token(self, field):
+        pass
+
+    def validate_username(self, field):
+        rid = current_app.redis.get('uname:%s:uid' % field.data)
+        if not rid:
+            raise ValueError("查无此人")
+
+        fields = ['id', 'username', 'photo', 'invite_quota_left']
+        recommender = current_app.redis.hmget('user:%s' % rid, fields)
+        recommender = dict(zip(fields, recommender))
+        if int(recommender.get('invite_quota_left', 0)) < 1:
+            raise ValueError("邀请名额已用完")
+        g.recommender = recommender
