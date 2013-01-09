@@ -189,9 +189,10 @@ class AppTest(unittest.TestCase):
         rv = self.signup('google', 'hello')
         assert '注册成功' in rv.data
         # google add a comment on emrys's post
-        comment = {'text': 'So Amazing'}
+        comment = {'comment':'So Amazing'}
         rv = self.app.post('/comment/item/%s' % postid, data=comment)
         ret = json.loads(rv.data)
+        print ret
         assert postid == int(ret['comment']['pid'])
 
     def test_show_item_comment(self):
@@ -215,7 +216,7 @@ class AppTest(unittest.TestCase):
         assert '注册成功' in rv.data
         # google add several comments on emrys's post
         # first comment
-        comment = {'text': 'So Amazing'}
+        comment = {'comment': 'So Amazing'}
         rv = self.app.post('/comment/item/%s' % postid, data=comment)
         ret = json.loads(rv.data)
         assert postid == int(ret['comment']['pid'])
@@ -232,22 +233,33 @@ class AppTest(unittest.TestCase):
     # timeline test stuff
     def test_timeline(self):
         self.signup('emrys', 'hello')
-        self.create_item()
-        self.signout()
-        self.signup('google', 'hello')
-        self.create_item()
-        self.create_item()
+        self.create_several_items()
+        self.create_several_items()
+        self.create_several_items()
+        self.create_several_items()
+        self.create_several_items()
+        self.create_several_items()
         self.signout()
 
         #get public timeline
-        self.signin('emrys', 'hello')
+        self.signup('google', 'hello')
         rv = self.app.get('/public', headers=ajax_headers)
         ret = json.loads(rv.data)
-        assert len(ret['timeline']) == 3
+        print len(ret['timeline'])
+        assert len(ret['timeline']) == 21
         # show closet
         rv = self.app.get('/closet/1', headers=ajax_headers)
         ret = json.loads(rv.data)
-        assert len(ret['timeline']) == 1
+        assert len(ret['timeline']) == 21
+        print ret['since_id'], ret['page']
+        rv = self.app.get('/closet/1?since_id=%s&page=%s'%(ret['since_id'], ret['page']), headers=ajax_headers)
+        ret_pre = json.loads(rv.data)
+        # create more items
+        self.create_several_items()
+
+        rv = self.app.get('/closet/1?since_id=%s&page=%s'%(ret['since_id'], ret['page']), headers=ajax_headers)
+        ret_now = json.loads(rv.data)
+        assert ret_pre == ret_now
 
     def test_feed(self):
         self.signup('emrys', 'hello')

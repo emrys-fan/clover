@@ -7,6 +7,8 @@ from account.helpers import get_current_user
 from account.views import bp_account
 from item.views import bp_item
 from timeline.views import bp_timeline
+from we.views import bp_we
+from sale.views import bp_sale
 
 app = Flask(__name__)
 app.config.from_object('settings')
@@ -22,6 +24,8 @@ app.redis = redis.Redis(
 app.register_blueprint(bp_account)
 app.register_blueprint(bp_item)
 app.register_blueprint(bp_timeline)
+app.register_blueprint(bp_we)
+app.register_blueprint(bp_sale)
 
 @app.route('/')
 def index():

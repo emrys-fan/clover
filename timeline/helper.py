@@ -28,7 +28,7 @@ def get_comment(pid, since_id, count):
     fields = ['id', 'username', 'photo']
     for commentid in comment_ids:
         comment = current_app.redis.hgetall('comment:%s'%commentid)
-        user = current_app.hmget('user:%s'%comment['uid'], fields)
+        user = current_app.redis.hmget('user:%s'%comment['uid'], fields)
         comment['user'] = dict(zip(fields, user))
         comments.append(comment)
     return comments

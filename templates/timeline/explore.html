@@ -1,60 +1,11 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
 {% block content %}
-<div id="main" role="main">
-    <ul id="tiles">
-        {% for t in timeline %}
-        <li class="{{ t['category'] }} listing-item" data-postid="{{ t['postid'] }}">
-        <div class="listing-details-con clearfix">
-            <div class="details ">
-                <a href="{{ url_for('item.show_item', pid=t['postid']) }}" class="image-con">
-                    <img src="{{ t['photos'] }}" alt="master picuture of listing {{ t['postid'] }}" class="covershot" />
-                </a>
-                <h4 class="listing-title">
-                    <a href="{{ url_for('item.show_item', pid=t['postid']) }}" class="black"><span>{{ t['title'] }}</span></a>
-                </h4>
-                <ul class="nobullet">
-                    <li class="price">
-                    <span class="current-price">RMB{{ t['current_price'] }}</span>
-                    <span class="original-price strike">RMB{{ t['original_price'] }}</span>
-                    </li>
-                    <li class="size">
-                    尺码: <a href="{{ url_for('.explore_category', filter=t['category']) }}?size={{ t['size'] }}">
-                        <span class="val">{{ t['size'] }}</span>
-                    </a>
-                    </li>
-                    <li class="brand">品牌:
-                    <a href="{{ url_for('.explore_brand', filter=t['brand']) }}">{{ t['brand'] }}</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div class="profile-con clearfix">
-            <a href="{{ url_for('.closet', uid=t['user']['id']) }}" class="profile-image-link">
-                <img src="{{ t['user']['photo'] }}" alt="" />
-            </a>
-            <div class="user-info">
-                <p class="no-image"><a href="{{url_for('.closet', uid=t['user']['id']) }}" class="profile-name">{{ t['user']['username'] }}</a></p>
-                <p>发布于<span class="timeago" title="{{ t['publish_time'] }}">{{ t['publish_time'] }}</span></p>
-            </div>
-        </div>
-        {% if g.user %}
-        <div class="new-comment-con hidden">
-            <a href="#" class="profile-image-link">
-                <img src="{{ g.user['photo'] }}" alt="photo for {{ g.user['username'] }}" />
-            </a>
-            <form action="{{ url_for('item.add_comment', pid=t['postid']) }}" class="comment-body" method="POST">
-                <input type="hidden" name="hidden-input"  />
-                <textarea name="comment"></textarea>
-                <input class="pull-right submit-comment" name="submit" type="submit" value="提交">
-            </form>
-        </div>
-        {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
-    <div id="loader">
-        <div id="loaderCircle"></div>
-    </div>
-</div>
+{% include "timeline/_timeline.html" %}
+{% endblock %}
+
+{% block script %}
+<script src="{{ url_for('static', filename='js/jquery.imagesloaded.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.wookmark.min.js') }}"></script>
+{% include "timeline/_wookmark.js" %}
 {% endblock %}

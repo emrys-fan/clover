@@ -1,0 +1,57 @@
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <a href="{{ url_for('index') }}" class="brand">苜蓿草</a>
+        {% if g.user %}
+        <div class="nav-callapse callapse">
+        <ul class="nav">
+            <li><a href="{{ url_for('timeline.public') }}">新货上架</a></li>
+            <li><a href="{{ url_for('timeline.feed') }}">我关注的</a></li>
+            <li class="dropdown">
+                <a id="drop1" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown">发现<b class="caret"></b></a>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="drop1">
+                    <li><a href="{{ url_for('timeline.explore_category', filter='accessories') }}">配饰</a></li>
+                    <li><a href="{{ url_for('timeline.explore_category', filter='boots')}}" >靴子</a></li>
+                    <li><a href="{{ url_for('timeline.explore_category', filter='wallets') }}">钱包</a></li>
+                    <li><a href="{{ url_for('timeline.explore_category', filter='denim') }}">工装裤</a></li>
+                    <li><a href="{{ url_for('timeline.explore_category', filter='dresses') }}">裙子</a></li>
+                    <li><a href="{{ url_for('timeline.explore_category', filter='handbags') }}">手提包</a></li>
+                    <li><a href="{{ url_for('timeline.explore_category', filter='jackets') }}">短上衣</a></li>
+                    <li><a href="{{ url_for('timeline.explore_category', filter='jewelry') }}">珠宝首饰</a></li>
+                    <li><a href="{{ url_for('timeline.explore_category', filter='outerwear') }}">外套</a></li>
+                    <li><a href="{{ url_for('timeline.explore_category', filter='pants') }}">短裤</a></li>
+                    <li><a href="{{ url_for('timeline.explore_category', filter='shoes') }}">鞋子</a></li>
+                    <li><a href="{{ url_for('timeline.explore_category', filter='sweaters') }}">毛衣</a></li>
+                    <li><a href="{{ url_for('timeline.explore_category', filter='others') }}">其它</a></li>
+                </ul>
+            </li>
+        </ul>
+        <ul class="nav pull-right">
+            <li id="fat-menu" class="dropdown">
+                <a id="drop2" href="#" role="button" class="dropdown-toggle" data-toggle="dropdown">{{ g.user['username']}}<b class="caret"></b></a>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="drop2">
+                    <li><a href="{{ url_for('timeline.closet', uid=g.user['id']) }}">我的橱柜</a></li>
+                    <li><a href="{{ url_for('timeline.likes') }}">我喜欢的</a></li>
+                    <li><a href="{{ url_for('sale.orders') }}">我的订单</a></li>
+                    <li><a href="{{ url_for('sale.purchases') }}">买到的宝贝</a></li>
+                    <li><a href="{{ url_for('sale.sales') }}">卖出的宝贝</a></li>
+                    <li class="divider"></li>
+                    <li><a href="{{ url_for('account.invitations') }}">邀请好友</a></li>
+                    <li><a href="{{ url_for('account.setting') }}">个人设置</a></li>
+                    <li><a href="{{ url_for('account.signout') }}">退出</a></li>
+                    <li class="divider"></li>
+                    <li><a href="{{ url_for('we.about') }}">关于苜蓿草</a></li>
+                    <li><a href="{{ url_for('we.contact')}}" >联系我们</a></li>
+                    <li><a href="{{ url_for('we.faq') }}">常见问题</a></li>
+                    <li><a href="{{ url_for('we.jobs') }}">加入我们</a></li>
+                    <li><a href="{{ url_for('we.blog') }}">博客</a></li>
+                </ul>
+            </li>
+        </ul>
+        {% else %}
+        <ul class="nav pull-right">
+            <li><a href="{{ url_for('account.signin') }}">登录</a></li>
+        </ul>
+        {% endif %}
+        </div>
+    </div>
+</div>

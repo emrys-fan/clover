@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import json
 import time
 from flask import Blueprint, request, current_app, g, jsonify, \
         render_template, abort, flash
@@ -38,7 +37,7 @@ def show_item(pid):
         abort(404)
     fields = ['id', 'username', 'photo']
     user = current_app.redis.hmget('user:%s'%request_item['uid'], fields)
-    request_item['user'] = dict(zip(fields, user))
+    user = dict(zip(fields, user))
 
     if current_app.redis.zscore('user:%s:like'%g.user['id'], pid):
         request_item['liked'] = True
@@ -46,8 +45,12 @@ def show_item(pid):
     post_commentid_list = current_app.redis.zrevrange('post:%s:comment'%pid, rev_since_id, rev_since_id+PAGE_SIZE)
     page = page + 1
     comments = []
+    fields = ['id', 'username', 'photo']
     for commentid in post_commentid_list:
-        comments.append(json.loads(current_app.redis.hget('comment', commentid)))
+        comment = current_app.redis.hgetall('comment:%s'%commentid)
+        comment_user = current_app.redis.hmget('user:%s'%comment['uid'], fields)
+        comment['user'] = dict(zip(fields, comment_user))
+        comments.append(comment)
 
     if request.is_xhr:
         return jsonify(request_item=request_item,
@@ -69,7 +72,7 @@ def show_item(pid):
 def add_comment(pid):
     comment_text = request.form.get('comment', None)
 
-    if comment_text:
+    if not comment_text:
         return jsonify()
 
     commentid = current_app.redis.hincrby('system', 'comment_id', 1)
@@ -112,3 +115,28 @@ def show_comment(pid):
         comments.append(comment)
 
     return jsonify(comments=comments, since_id=since_id, page=page)
+
+
+@bp_item.route('/like/<int:pid>')
+@login_required
+def like(pid):
+    exist = current_app.redis.exists('post:%s'%pid)
+    if exist:
+        current_app.redis.zadd('post:%s:like'%pid, g.user['id'], time.time())
+        current_app.redis.zadd('user:%s:like'%g.user['id'], pid, time.time())
+        return jsonify(liked=True)
+    else:
+        abort(404)
+
+
+@bp_item.route('/unlike/<int:pid>')
+@login_required
+def unlike(pid):
+    exist = current_app.redis.exists('post:%s'%pid)
+
+    if exist:
+        current_app.redis.zrem('post:%s:like'%pid, g.user['id'])
+        current_app.redis.zrem('user:%s:like'%g.user['id'], pid)
+        return jsonify(liked=False)
+    else:
+        abort(404)

@@ -2,7 +2,8 @@
 {% from '_formhelper.html' import render_field, render_submit %}
 
 {% block content %}
-<form action="{{ url_for('.setting') }}" class="form-horizontal" method="POST">
+<div class="container">
+<form action="{{ url_for('.setting') }}" class="form-setting form-horizontal" method="POST">
     {{ form.hidden_tag() }}
     {{ render_field(form.username, g.user['username']) }}
     {{ render_field(form.email, g.user['email']) }}
@@ -12,5 +13,6 @@
     {{ render_field(form.website, g.user['website']) }}
     {{ render_submit('保存') }}
 </form>
+</div>
 {% endblock %}
 

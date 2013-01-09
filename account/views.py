@@ -124,6 +124,12 @@ def confirm_invitation():
     return render_template('account/confirm_invitation.html', form=form)
 
 
+@bp_account.route('/invitations')
+@login_required
+def invitations():
+    return render_template('account/invitations.html')
+
+
 @bp_account.route('/auth/weibo',methods=['GET'])
 @invitation_required
 def auth_weibo():

@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-import time
 import uuid
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
 from flask import g
-from flask import session
 from flask.ext.wtf import Form
 from flask.ext.wtf import TextField, PasswordField, TextAreaField
 from flask.ext.wtf import Required, Email, URL, Optional, Length
@@ -31,6 +29,7 @@ class SignupForm(Form):
                 'username': self.username.data,
                 'password': generate_password_hash(self.password.data),
                 'email': self.email.data,
+                'photo': current_app.config['DEFAULT_PROFILE_IMAGE'],
                 'token': token}
 
         current_app.redis.set('uname:%s:uid'%self.username.data, uid)

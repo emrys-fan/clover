@@ -2,10 +2,12 @@
 {% from '_formhelper.html' import render_field, render_submit %}
 
 {% block content %}
-<form action="{{ request.url }}" class="form-horizontal" method="POST">
+<div class="container">
+<form action="{{ request.url }}" class="form-signin form-horizontal" method="POST">
     {{ form.hidden_tag() }}
     {{ render_field(form.username) }}
     {{ render_field(form.password) }}
     {{ render_submit('登录') }}
 </form>
+</div>
 {% endblock %}
