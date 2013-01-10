@@ -1,1 +1,11 @@
 {% extends 'base.html' %}
+
+{% block content %}
+{% include "timeline/_timeline.html" %}
+{% endblock %}
+
+{% block script %}
+<script src="{{ url_for('static', filename='js/jquery.imagesloaded.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.wookmark.min.js') }}"></script>
+{% include "timeline/_wookmark.js" %}
+{% endblock %}

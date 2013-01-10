@@ -103,9 +103,9 @@ def likes():
     user_likes = get_timeline(user_like_id_list)
 
     if request.is_xhr:
-        return jsonify(likes=user_likes, since_id=since_id, page=page)
+        return jsonify(timeline=user_likes, since_id=since_id, page=page)
 
-    return render_template('timeline/likes.html', likes=user_likes, since_id=since_id, page=page)
+    return render_template('timeline/likes.html', timeline=user_likes, since_id=since_id, page=page)
 
 
 @bp_timeline.route('/explore/category/<filter>')

@@ -3,15 +3,17 @@
 
 import unittest
 import json
-import app
+from app import app
 
 ajax_headers = {'X-Requested-With': 'XMLHttpRequest'}
 
 class AppTest(unittest.TestCase):
 
     def setUp(self):
-        self.app = app.app.test_client()
-        app.app.redis.flushdb()
+        # disable invite mode for initial signup
+        app.config['INVITE_MODE'] = False
+        self.app = app.test_client()
+        app.redis.flushdb()
 
     def signup(self, username, password, confirm=None, email=None):
         if confirm is None:
@@ -337,14 +339,14 @@ class AppTest(unittest.TestCase):
         rv = self.app.get('/like/5')
         rv = self.app.get('/likes', headers=ajax_headers)
         ret = json.loads(rv.data)
-        assert len(ret['likes']) == 5
+        assert len(ret['timeline']) == 5
 
         rv = self.app.get('/unlike/4')
         ret = json.loads(rv.data)
         assert ret['liked'] == False
         rv = self.app.get('/likes', headers=ajax_headers)
         ret = json.loads(rv.data)
-        assert len(ret['likes']) == 4
+        assert len(ret['timeline']) == 4
 
     # timeline test stuff
     def test_timeline(self):
