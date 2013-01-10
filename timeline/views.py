@@ -77,12 +77,12 @@ def closet(uid):
     user = current_app.redis.hmget('user:%s'%uid, fields)
     user = dict(zip(fields, user))
 
-    if current_app.redis.zscore('user:%s:followed'%g.user['id'], uid):
+    if current_app.redis.zscore('user:%s:following'%g.user['id'], uid):
         user['followed'] = True
 
     user['listing_count'] = current_app.redis.zcard('user:%s:timeline'%uid) or 0
     user['following_count'] = current_app.redis.zcard('user:%s:following'%uid) or 0
-    user['followed_count'] = current_app.redis.zcard('user:%s:followed'%uid) or 0
+    user['followed_count'] = current_app.redis.zcard('user:%s:follower'%uid) or 0
 
     if request.is_xhr:
         return jsonify(user=user, timeline=user_timeline, since_id=since_id, page=page)

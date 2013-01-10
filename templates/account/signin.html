@@ -8,6 +8,8 @@
     {{ render_field(form.username) }}
     {{ render_field(form.password) }}
     {{ render_submit('登录') }}
+    <a href="{{ url_for('account.weibo_signin') }}">微博登录</a>
+    <a href="{{ url_for('account.signup') }}">注册</a>
 </form>
 </div>
 {% endblock %}

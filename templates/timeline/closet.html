@@ -35,4 +35,24 @@
 <script src="{{ url_for('static', filename='js/jquery.imagesloaded.js') }}"></script>
 <script src="{{ url_for('static', filename='js/jquery.wookmark.min.js') }}"></script>
 {% include "timeline/_wookmark.js" %}
+<script type="text/javascript">
+$('#followAction').click(function(e){
+    action_url = $(this).attr('href');
+    $.ajax({
+        type: "GET",
+        url: action_url,
+        data: null,
+        success: function(data) {
+            if (data.followed) {
+                $(e.target).attr('href', '/unfollow/{{ user["id"] }}');
+                $(e.target).html('取消关注');
+            }else {
+                $(e.target).attr('href', '/follow/{{ user["id"] }}');
+                $(e.target).html('加关注');
+            }
+        }
+    });
+    return false;
+});
+</script>
 {% endblock %}

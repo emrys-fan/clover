@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import redis
-from flask import Flask, g, render_template
+from flask import Flask, g, render_template, redirect, url_for
 from account.helpers import get_current_user
 from account.views import bp_account
 from item.views import bp_item
@@ -29,6 +29,8 @@ app.register_blueprint(bp_sale)
 
 @app.route('/')
 def index():
+    if g.user:
+        return redirect(url_for('timeline.public'))
     return render_template('index.html')
 
 

@@ -64,7 +64,7 @@ def weibo_signin():
             return redirect(url_for('index'))
         else:
             flash('请先行注册')
-            return redirect('account.signup')
+            return redirect(url_for('account.signup'))
 
     return redirect(client.authorize_url)
 
@@ -80,7 +80,7 @@ def signup():
         user = form.save()
 
         if hasattr(g, 'recommender'):
-            current_app.redis.zadd('user:%s:invited'%g.recommender['id'], user['id'], time.time())
+            current_app.redis.zadd('user:%s:invitations'%g.recommender['id'], user['id'], time.time())
             current_app.redis.hset('user:%s'%user['id'], 'rid', g.recommender['id'])
             current_app.redis.hincrby('user:%s'%g.recommender['id'], 'invite_quota_left', -1)
             session.pop('rid', None)
@@ -100,7 +100,7 @@ def setting():
     if form.validate_on_submit():
         form.save()
         flash("修改配置成功")
-        return redirect(url_for('.setting'))
+        return redirect(url_for('index'))
     return render_template('account/setting.html', form=form)
 
 
@@ -127,7 +127,29 @@ def confirm_invitation():
 @bp_account.route('/invitations')
 @login_required
 def invitations():
-    return render_template('account/invitations.html')
+    invitation_count = current_app.redis.zcard('user:%s:invitations'%g.user['id'])
+    since_id = int(request.args.get('since_id', invitation_count))
+    page = int(request.args.get('page', 1))
+    rev_since_id = invitation_count -since_id + (page-1)*PAGE_SIZE
+
+    recent_invitation_ids = current_app.redis.zrevrange('user:%s:invitations'%g.user['id'],
+            rev_since_id,
+            rev_since_id+PAGE_SIZE)
+    page += 1
+    invitations = []
+    fields = ['id', 'username', 'photo', 'about']
+    for uid in recent_invitation_ids:
+        user = current_app.redis.hmget('user:%s'%uid, fields)
+        user = dict(zip(fields, user))
+        invitations.append(user)
+
+    if request.is_xhr:
+        return jsonify(invitations=invitations, since_id=since_id, page=page)
+
+    return render_template('account/invitations.html',
+            invitations=invitations,
+            since_id=since_id,
+            page=page)
 
 
 @bp_account.route('/auth/weibo',methods=['GET'])
@@ -143,7 +165,7 @@ def auth_weibo():
         code = request.args.get('code')
         client.set_code(code)
         user = client.get("users/show", uid=client.uid)
-        fields = ["id", "screen_name", "profile_image_url"]
+        fields = ["id", "screen_name", "profile_image_url", "description"]
         weibo = {}
 
         for field in fields:
@@ -173,6 +195,7 @@ def auth_weibo():
                     'active': True,
                     'photo': weibo['profile_image_url'],
                     'weibo': weibo['id'],
+                    'about': weibo['description'],
                     'token': uuid.uuid4().get_hex()}
 
             current_app.redis.hmset('weibo:%s'%weibo['id'], weibo)
@@ -180,7 +203,7 @@ def auth_weibo():
             login(g.user)
 
         if hasattr(g, 'recommender'):
-            current_app.redis.zadd('user:%s:invited'%g.recommender['id'], g.user['id'], time.time())
+            current_app.redis.zadd('user:%s:invitations'%g.recommender['id'], g.user['id'], time.time())
             current_app.redis.hset('user:%s'%g.user['id'], 'rid', g.recommender['id'])
             current_app.redis.hincrby('user:%s'%g.recommender['id'], 'invite_quota_left', -1)
             session.pop('rid', None)
@@ -198,7 +221,7 @@ def following(uid):
     page = int(request.args.get('page', 1))
     rev_since_id = following_count - since_id + (page-1)*PAGE_SIZE
 
-    fields = ['id', 'username', 'photo']
+    fields = ['id', 'username', 'photo', 'about']
     user = current_app.redis.hmget('user:%s'%uid, fields)
     user = dict(zip(fields, user))
 
@@ -215,13 +238,13 @@ def following(uid):
         following = dict(zip(fields, following))
         followings.append(following)
 
-    if current_app.redis.zscore('user:%s:follower'%g.user['id'], uid):
+    if current_app.redis.zscore('user:%s:following'%g.user['id'], uid):
         user['followed'] = True
 
     if request.is_xhr:
         return jsonify(user=user, followings=followings, since_id=since_id, page=page)
 
-    return render_template('following.html', user=user, followings=followings, since_id=since_id, page=page)
+    return render_template('account/following.html', user=user, followings=followings, since_id=since_id, page=page)
 
 
 @bp_account.route('/follower/<int:uid>')
@@ -232,7 +255,7 @@ def follower(uid):
     page = int(request.args.get('page', 1))
     rev_since_id = follower_count - since_id + (page-1)*PAGE_SIZE
 
-    fields = ['id', 'username', 'photo']
+    fields = ['id', 'username', 'photo', 'about']
     user = current_app.redis.hmget('user:%s'%uid, fields)
     user = dict(zip(fields, user))
 
@@ -255,7 +278,7 @@ def follower(uid):
     if request.is_xhr:
         return jsonify(user=user, followers=followers, since_id=since_id, page=page)
 
-    return render_template('follower.html', user=user, followers=followers, since_id=since_id, page=page)
+    return render_template('account/follower.html', user=user, followers=followers, since_id=since_id, page=page)
 
 
 @bp_account.route('/follow/<int:uid>')

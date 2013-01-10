@@ -7,7 +7,7 @@ REDIS_PORT = 6379
 SECRET_KEY = '\x1f\x08<\\\xccP\xf1\xae\x8cjr&E\x00\x0c=.V\xa4\xc7\xff\\\xae5'
 SQLALCHEMY_ECHO = False
 UPLOADED_PHOTOS_DEST = '/home/vagrant/upload'
-INVITE_MODE = False
+INVITE_MODE = True
 PUBLISH_TO_INVITE_COEFFICIENT = 1
 DEAL_TO_INVITE_COEFFICIENT = 5
 DEFAULT_PROFILE_IMAGE = 'http://cdn.v2ex.com/avatar/53e4/db6f/25603_large.png?m=1345442434'

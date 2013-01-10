@@ -7,9 +7,9 @@
                 <a href="{{ url_for('item.show_item', pid=t['postid']) }}" class="image-con">
                     <img src="{{ t['photo'] }}" alt="master picuture of listing {{ t['postid'] }}" class="covershot" />
                 </a>
-                <h4 class="listing-title">
+                <h6 class="listing-title">
                     <a href="{{ url_for('item.show_item', pid=t['postid']) }}" class="black"><span>{{ t['title'] }}</span></a>
-                </h4>
+                </h6>
                 <ul class="nobullet">
                     <li class="price">
                     <span class="current-price">RMB{{ t['current_price'] }}</span>
