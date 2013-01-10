@@ -41,6 +41,7 @@ class PostForm(Form):
         current_app.redis.zadd('category:%s'%post['category'], postid, time.time())
         current_app.redis.zadd('category:%s:size:%s'%(post['category'], post['size']), postid, time.time())
         current_app.redis.zadd('brand:%s'%post['brand'], postid, time.time())
+        current_app.redis.zadd('brand:%s:category:%s'%(post['brand'],post['category']), postid, time.time())
 
         followings = current_app.redis.zrevrange('user:%s:following'%g.user['id'], 0, -1)
         for fid in followings:

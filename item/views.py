@@ -15,12 +15,12 @@ PAGE_SIZE = 20
 @login_required
 def create_item():
     form  = PostForm()
-    current_app.logger.info('post: %s' % form.data)
+
     if form.validate_on_submit():
-        current_app.logger.info('validate successfully')
         post = form.save()
         flash('发布成功')
         return jsonify(postid=post['postid'], message='success')
+
     return render_template('item/create.html', form=form)
 
 

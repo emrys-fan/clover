@@ -98,7 +98,7 @@ def likes():
     page = int(request.args.get('page', 1))
     rev_since_id = likes_count - since_id + (page-1)*PAGE_SIZE
 
-    user_like_id_list = current_app.redis.zrevrange('user_likes:%s'%g.user['id'], rev_since_id, rev_since_id+PAGE_SIZE)
+    user_like_id_list = current_app.redis.zrevrange('user:%s:like'%g.user['id'], rev_since_id, rev_since_id+PAGE_SIZE)
     page += 1
     user_likes = get_timeline(user_like_id_list)
 

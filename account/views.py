@@ -266,10 +266,10 @@ def follow(uid):
 
     # check if had followed
     if current_app.redis.zscore('user:%s:following'%g.user['id'], uid):
-        jsonify(followed=True, message="已关注")
+        return jsonify(followed=True, message="已关注")
 
     current_app.redis.zadd('user:%s:following'%g.user['id'], uid, time.time())
-    current_app.redis.zadd('user:%s:followed'%uid, g.user['id'], time.time())
+    current_app.redis.zadd('user:%s:follower'%uid, g.user['id'], time.time())
     postid_list = current_app.redis.zrevrange('user:%s:timeline'%uid, 0, -1)
     for pid in postid_list:
         current_app.redis.zadd('user:%s:feed'%g.user['id'], pid, time.time())
@@ -287,7 +287,7 @@ def unfollow(uid):
         return jsonify(followed=False, message='尚未关注')
 
     current_app.redis.zrem('user:%s:following'%g.user['id'], uid)
-    current_app.redis.zrem('user:%s:followed'%uid, g.user['id'])
+    current_app.redis.zrem('user:%s:follower'%uid, g.user['id'])
     postid_list = current_app.redis.zrange('user:%s:timeline'%uid, 0, -1)
     for pid in postid_list:
         current_app.redis.zrem('user:%s:feed'%g.user['id'], pid)

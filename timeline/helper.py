@@ -22,8 +22,7 @@ def get_timeline(postid_list, user=None):
     return timeline
 
 
-def get_comment(pid, since_id, count):
-    comment_ids = current_app.redis.zrange('post:%s:comment'%pid, since_id, count)
+def get_comment(comment_ids):
     comments = []
     fields = ['id', 'username', 'photo']
     for commentid in comment_ids:

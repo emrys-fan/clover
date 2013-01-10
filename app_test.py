@@ -51,6 +51,8 @@ class AppTest(unittest.TestCase):
         assert '该用户名已注册' in rv.data
         rv = self.signup('', 'hello')
         assert '缺少用户名' in rv.data
+        rv = self.signup('me', 'hello')
+        assert 'Field must be between 3 and 20 characters long' in rv.data
 
     def test_signin(self):
         rv = self.signup('emrys', 'hello')
@@ -59,10 +61,94 @@ class AppTest(unittest.TestCase):
         assert '已退出' in rv.data
         rv = self.signin('emrys', 'hello')
         assert '成功登录' in rv.data
+        rv = self.signout()
+
+        rv = self.signin('emrys', '')
+        assert 'This field is required' in rv.data
+        rv = self.signin('', 'hello')
+        assert 'This field is required' in rv.data
+        rv = self.signin('emrys', 'default')
+        assert '用户名或密码错误' in rv.data
+        rv = self.signin('emily', 'hello')
+        assert '用户名或密码错误' in rv.data
 
     def test_signin_signout(self):
         rv = self.signin_and_signout('emrys', 'hello')
         assert '已退出' in rv.data
+
+    def test_follow_action(self):
+        self.signup('emrys', 'hello')
+        self.signout()
+        self.signup('google', 'hello')
+        self.signout()
+        self.signup('facebook', 'hello')
+        self.signout()
+        self.signup('someone1', 'hello')
+        self.signout()
+        self.signup('someone2', 'hello')
+        self.signout()
+        self.signup('someone3', 'hello')
+        self.signout()
+
+        rv = self.signup('myself', 'hello')
+        # follow emrys
+        rv = self.app.get('/follow/1')
+        ret = json.loads(rv.data)
+        assert ret['message'] == '关注成功'
+        # try follow the same person again
+        rv = self.app.get('/follow/1')
+        ret = json.loads(rv.data)
+        assert ret['message'] == '已关注'
+        # unfollow emrys
+        rv = self.app.get('/unfollow/1')
+        ret = json.loads(rv.data)
+        assert '取消关注成功' == ret['message']
+        rv = self.app.get('/unfollow/1')
+        ret = json.loads(rv.data)
+        assert '尚未关注' == ret['message']
+        # follow or unfollow somebody does not exist will get a error
+        rv = self.app.get('/follow/100')
+        assert rv.status_code == 404
+        rv = self.app.get('/unfollow/100')
+        assert rv.status_code == 404
+
+        # following 6 buddies
+        rv = self.app.get('/follow/1')
+        rv = self.app.get('/follow/2')
+        rv = self.app.get('/follow/3')
+        rv = self.app.get('/follow/4')
+        rv = self.app.get('/follow/5')
+        rv = self.app.get('/follow/6')
+        # check following lists
+        rv = self.app.get('/following/7', headers=ajax_headers)
+        ret = json.loads(rv.data)
+        assert len(ret['followings']) == 6
+        # logout myself
+        self.signout()
+
+        #
+        self.signin('google', 'hello')
+        # now google is following emrys
+        rv = self.app.get('/follow/1')
+        self.signout()
+
+        self.signin('facebook', 'hello')
+        # now facebook is following emrys
+        rv = self.app.get('/follow/1')
+        self.signout()
+
+        # check emrys's followers
+        self.signin('emrys', 'hello')
+        rv = self.app.get('/follower/1', headers=ajax_headers)
+        ret = json.loads(rv.data)
+        assert len(ret['followers']) == 3
+
+        # listing followers of nonexist user get empty data instead of error
+        rv = self.app.get('/follower/100', headers=ajax_headers)
+        assert rv.status_code == 200
+        ret = json.loads(rv.data)
+        assert len(ret['followers']) == 0
+
 
     # item test helper
     def create_item(self):
@@ -155,7 +241,8 @@ class AppTest(unittest.TestCase):
         rv = self.signup('emrys', 'hello')
         assert '注册成功' in rv.data
         rv = self.create_item()
-        assert 'success' in rv.data
+        ret = json.loads(rv.data)
+        assert ret['message'] == 'success'
 
     def test_show_item(self):
         self.signup('emrys', 'hello')
@@ -192,7 +279,6 @@ class AppTest(unittest.TestCase):
         comment = {'comment':'So Amazing'}
         rv = self.app.post('/comment/item/%s' % postid, data=comment)
         ret = json.loads(rv.data)
-        print ret
         assert postid == int(ret['comment']['pid'])
 
     def test_show_item_comment(self):
@@ -230,6 +316,36 @@ class AppTest(unittest.TestCase):
         ret = json.loads(rv.data)
         assert len(ret['comments']) == 2
 
+    def test_like_action(self):
+        # create several items
+        self.signup('emrys', 'hello')
+        self.create_several_items()
+        self.signout()
+
+        self.signup('google', 'hello')
+        rv = self.app.get('/like/1')
+        ret = json.loads(rv.data)
+        assert ret['liked'] == True
+        # like a nonexists item will get a error
+        rv = self.app.get('/like/100')
+        assert rv.status_code == 404
+
+        rv = self.app.get('/like/1')
+        rv = self.app.get('/like/2')
+        rv = self.app.get('/like/3')
+        rv = self.app.get('/like/4')
+        rv = self.app.get('/like/5')
+        rv = self.app.get('/likes', headers=ajax_headers)
+        ret = json.loads(rv.data)
+        assert len(ret['likes']) == 5
+
+        rv = self.app.get('/unlike/4')
+        ret = json.loads(rv.data)
+        assert ret['liked'] == False
+        rv = self.app.get('/likes', headers=ajax_headers)
+        ret = json.loads(rv.data)
+        assert len(ret['likes']) == 4
+
     # timeline test stuff
     def test_timeline(self):
         self.signup('emrys', 'hello')
@@ -245,13 +361,11 @@ class AppTest(unittest.TestCase):
         self.signup('google', 'hello')
         rv = self.app.get('/public', headers=ajax_headers)
         ret = json.loads(rv.data)
-        print len(ret['timeline'])
         assert len(ret['timeline']) == 21
         # show closet
         rv = self.app.get('/closet/1', headers=ajax_headers)
         ret = json.loads(rv.data)
         assert len(ret['timeline']) == 21
-        print ret['since_id'], ret['page']
         rv = self.app.get('/closet/1?since_id=%s&page=%s'%(ret['since_id'], ret['page']), headers=ajax_headers)
         ret_pre = json.loads(rv.data)
         # create more items
@@ -303,6 +417,53 @@ class AppTest(unittest.TestCase):
         # try to follow yourself will get a 404 error
         rv = self.app.get('/follow/3')
         assert rv.status_code == 404
+
+    def test_show_user_comment(self):
+        self.signup('emrys', 'hello')
+        self.create_several_items()
+        self.signout()
+
+        self.signup('google', 'hello')
+        comment = {'comment':'So Amazing'}
+        rv = self.app.post('/comment/item/1', data=comment)
+        ret = json.loads(rv.data)
+        assert 1 == int(ret['comment']['pid'])
+        rv = self.app.post('/comment/item/2', data=comment)
+        ret = json.loads(rv.data)
+        assert 2 == int(ret['comment']['pid'])
+        rv = self.app.post('/comment/item/3', data=comment)
+        ret = json.loads(rv.data)
+        assert 3 == int(ret['comment']['pid'])
+
+        # listing user comments
+        rv = self.app.get('/comments', headers=ajax_headers)
+        ret = json.loads(rv.data)
+        assert len(ret['timeline']) == 3
+
+    def test_explore(self):
+        self.signup('emrys', 'hello')
+        self.create_several_items()
+        self.signout()
+        self.signup('google', 'hello')
+        self.create_several_items()
+        self.signout()
+
+        self.signup('myself', 'hello')
+        # explore category
+        rv = self.app.get('/explore/category/Suit', headers=ajax_headers)
+        ret = json.loads(rv.data)
+        assert len(ret['timeline']) == 4
+        rv = self.app.get('/explore/category/Suit?size=Middle', headers=ajax_headers)
+        ret = json.loads(rv.data)
+        assert len(ret['timeline']) == 2
+
+        # explore brand
+        rv = self.app.get('/explore/brand/Merocrat', headers=ajax_headers)
+        ret = json.loads(rv.data)
+        assert len(ret['timeline']) == 4
+        rv = self.app.get('/explore/brand/Merocrat?category=Suit', headers=ajax_headers)
+        ret = json.loads(rv.data)
+        assert len(ret['timeline']) == 2
 
 
 if __name__ == '__main__':
