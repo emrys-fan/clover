@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import uuid
+import time
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
 from flask import g
@@ -30,7 +31,8 @@ class SignupForm(Form):
                 'password': generate_password_hash(self.password.data),
                 'email': self.email.data,
                 'photo': current_app.config['DEFAULT_PROFILE_IMAGE'],
-                'token': token}
+                'token': token,
+                'created_at': time.time()}
 
         current_app.redis.set('uname:%s:uid'%self.username.data, uid)
         current_app.redis.hmset('user:%s'%uid, user)
@@ -57,7 +59,11 @@ class SigninForm(Form):
         if not check_password_hash(user['password'], self.password.data):
             raise ValueError('用户名或密码错误')
 
+        user['token'] = uuid.uuid4().get_hex()
+        # update token
+        current_app.redis.hset('user:%s'%user['id'], 'token', user['token'])
         self.user = user
+
         return user
 
     def validate_csrf_token(self, field):
