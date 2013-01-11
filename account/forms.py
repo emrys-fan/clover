@@ -59,9 +59,9 @@ class SigninForm(Form):
         if not check_password_hash(user['password'], self.password.data):
             raise ValueError('用户名或密码错误')
 
-        user['token'] = uuid.uuid4().get_hex()
+        update_info = {'token': uuid.uuid4().get_hex(), 'updated_at': time.time()}
         # update token
-        current_app.redis.hset('user:%s'%user['id'], 'token', user['token'])
+        current_app.redis.hmset('user:%s'%user['id'], update_info)
         self.user = user
 
         return user
