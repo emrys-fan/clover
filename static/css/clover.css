@@ -3,6 +3,42 @@ body {
     padding-top: 40px;
 }
 
+.container {
+    padding-top: 10px;
+    padding-bottom: 20px;
+}
+
+textarea {
+    border-radius: 0;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+}
+
+ul.top-listings {
+    margin: 0px;
+}
+ul.top-listings > li {
+    margin-left: 0px;
+    margin-bottom: 0px;
+}
+.listing-count {
+    color: green;
+}
+.listing-actions > a {
+    margin: 0 50px;
+    background: #0370EA;
+    background: -moz-linear-gradient(top,#008DFD 0,#0370EA 100%);
+    background: -webkit-gradient(linear,left top,left bottom,color-stop(0,#008DFD),color-stop(100%,#0370EA));
+    background: -webkit-linear-gradient(top,#008DFD 0,#0370EA 100%);
+    background: -o-linear-gradient(top,#008DFD 0,#0370EA 100%);
+    background: -ms-linear-gradient(top,#008DFD 0,#0370EA 100%);
+    background: linear-gradient(top,#008DFD 0,#0370EA 100%);
+}
+
+.profile-media-con img {
+    width: 50px;
+}
+
 #timeline {
     position: relative;
     padding: 10px 0;
@@ -23,10 +59,6 @@ body {
     -webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
     -moz-box-shadow: 0 1px 2px rgba(0,0,0,.05);
     box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
-}
-
-.media {
-    border: 1px solid #D1CDCD;
 }
 
 /**
@@ -82,18 +114,6 @@ a.timeline-photos {
     text-decoration: none;
 }
 
-.nobullet {
-    list-style: none;
-    list-style-image: none;
-    padding-left: 5px;
-    color: #999;
-}
-
-.nobullet>li {
-    float: left;
-    margin: 0px 5px;
-}
-
 .new-comment-con,
 .profile-con {
     background-color: #f2f0f0;
@@ -112,11 +132,10 @@ profile-image-con,
     line-height: 1em;
 }
 
-.listing-actions-con {
-    list-style: none;
-    list-style-image: none;
-    padding-left: 5px;
+.comment-body form {
+    margin: 0px;
 }
+
 .liked {
     color: #eaeaea;
 }
@@ -145,33 +164,16 @@ a.liked:hover {
     margin-top: 20px;
 }
 
-.right-col .listing-wrapper {
-    margin-top: 0;
-    padding: 0;
-}
-
-.listing-wrapper {
-    position: relative;
-    margin: 76px auto 32px;
-    padding: 0 18px 10px;
+.wrapper {
     background-color: white;
     box-shadow: 0 1px 3px rgba(34, 25, 25, 0.4);
     -moz-box-shadow: 0 1px 2px rgba(34,25,25,0.4);
     -webkit-box-shadow: 0 1px 3px rgba(34, 25, 25, 0.4);
 }
 
-.listing-wrapper::after {
-    clear: both;
-    display: block;
-    height: 0;
-    content: " ";
-    visibility: hidden;
-}
-
-.listing-title-con {
-    padding: 20px 30px;
+.listing-title-wrapper {
     border-bottom: 1px solid #D1CDCD;
-    overflow: hidden;
+    padding: 19px;
 }
 
 .listing-action-con {
@@ -209,9 +211,8 @@ a.liked:hover {
     border-bottom: 1px solid #D1CDCD;
 }
 
-.listing-addcomment-con,
-#listing-comment-con {
-    margin-bottom: 5px;
+.listing-addcomment-con {
+    border-bottom: 1px solid #D1CDCD;
 }
 
 #listing-comment-con .comment {
@@ -225,21 +226,9 @@ a.liked:hover {
     clear: both;
     padding: 5px 30px;
     overflow: hidden;
-    border-bottom: 1px solid #D1CDCD;
 }
 #comment-area {
     width: 100%;
-}
-
-.listing-board {
-    position: relative;
-    width: 222px !important;
-    padding: 0 !important;
-    background: #fff;
-    margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(34, 25, 25, 0.4);
-    -moz-box-shadow: 0 1px 2px rgba(34,25,25,0.4);
-    -webkit-box-shadow: 0 1px 3px rgba(34, 25, 25, 0.4);
 }
 
 .closet-listings {
@@ -255,15 +244,6 @@ a.liked:hover {
 
 .profile-widget {
     padding: 5px;
-}
-
-.price-detail {
-    padding: 5px;
-    border-top: 1px solid #D1CDCD;
-}
-.price {
-    float: left;
-    margin-top: 7px;
 }
 
 .invite-fixed-container,
@@ -301,12 +281,6 @@ a.liked:hover {
 .profile-content {
     margin: 0px 0px 0px 180px;
     padding-right: 15px;
-}
-
-.pipe-wrapper {
-    border-top: 1px solid #D1CDCD;
-    padding: 10px 0;
-    display: block;
 }
 
 .original-price {

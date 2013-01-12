@@ -50,6 +50,7 @@ class AppTest(unittest.TestCase):
         rv = self.signup('emrys', 'hello')
         assert '注册成功' in rv.data
         rv = self.signup('emrys', 'hello')
+        print rv.status_code
         assert '该用户名已注册' in rv.data
         rv = self.signup('', 'hello')
         assert '缺少用户名' in rv.data

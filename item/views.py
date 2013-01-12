@@ -5,6 +5,7 @@ import time
 from flask import Blueprint, request, current_app, g, jsonify, \
         render_template, abort, flash
 from account.utils import login_required
+from timeline.helper import get_timeline
 from forms import PostForm
 
 bp_item = Blueprint('item', __name__)
@@ -38,7 +39,10 @@ def show_item(pid):
     fields = ['id', 'username', 'photo']
     user = current_app.redis.hmget('user:%s'%request_item['uid'], fields)
     user = dict(zip(fields, user))
+    user['listing_count'] = current_app.redis.zcard('user:%s:timeline'%request_item['uid']) or 0
 
+    request_item['likes'] = current_app.redis.zcard('post:%s:like'%pid) or 0
+    request_item['comment_count'] = current_app.redis.zcard('post:%s:comment'%pid) or 0
     if current_app.redis.zscore('user:%s:like'%g.user['id'], pid):
         request_item['liked'] = True
 
@@ -59,9 +63,13 @@ def show_item(pid):
                 since_id=since_id,
                 page=page)
 
+    user_postid_list = current_app.redis.zrange('user:%s:timeline'%user['id'], 0, 3)
+    user_timeline = get_timeline(user_postid_list)
+
     return render_template('item/item.html',
             request_item=request_item,
             user=user,
+            timeline=user_timeline,
             comments=comments,
             since_id=since_id,
             page=page)

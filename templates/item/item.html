@@ -1,78 +1,105 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% block content %}
-<div class="main-con">
-    <div class="left-col">
-        <div class="listing-board">
-            <h4>{{ request_item['title'] }}</h4>
-            <ul class="nobullet">
-                <li class="size"><a href="{{ url_for('timeline.explore_category', filter=request_item['category']) }}?size={{ request_item['size'] }}">size:{{ request_item['size'] }}</a></li>
-                <li class="category"><a href="{{ url_for('timeline.explore_category', filter=request_item['category']) }}">category:{{ request_item['category'] }}</a></li>
-            </ul>
-            <div class="profile-widget clearfix">
-                <a href="{{ url_for('timeline.closet', uid=user['id']) }}" class="profile-image-link">
-                    <img src="{{ user['photo'] }}" alt="profile image for {{ user['username'] }}" />
-                </a>
-                <div class="user-info">
-                    <p class="no-image"><a href="{{ url_for('timeline.closet', uid=user['id']) }}">{{ user['username'] }}</a></p>
-                    <p>发布于<span class="timeago" title="{{ request_item['publish_time'] }}">{{ request_item['publish_time'] }}</span></p>
-                </div>
-            </div>
-            <div class="price-detail clearfix">
-                <div class="price">
-                    <span class="current-price">RMB{{ request_item['current_price'] }}</span>
-                    <span class="original-price">RMB{{ request_item['original_price'] }}</span>
-                </div>
-                <div class="buy-button pull-right btn">
-                    <a href="{{ url_for('sale.buy', pid=request_item['postid']) }}">购买</a>
-                </div>
-            </div>
-        </div>
-        <div class="closet-listings">
-            <div class="closet-widget">
-                <h5>{{ user['username'] }}</h5>
-                <div class="listings">
-                    {% for t in timeline %}
-                    <a href="{{ url_for('item.show_item', pid=t['postid']) }}"><img class="listing-image-small" src="{{ t['photo'] }}" alt="" /></a>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="right-col clearfix">
-        <div class="listing-wrapper">
-            <div class="listing-title-con">
-                <a href="{{ url_for('timeline.closet', uid=user['id']) }}" class="profile-image-link">
-                    <img src="{{ user['photo'] }}" alt="" />
-                </a>
-                <div class="listing-info">
+<div class="container">
+    <div class="row">
+        <div class="span4">
+            <div class="affix well wrapper">
+                <div class="listing-board">
                     <h4>{{ request_item['title'] }}</h4>
-                    <p>发布于<span class="timeago" title="{{ request_item['publish_time'] }}">{{ request_item['publish_time'] }}</span></p>
+                    <ul class="inline">
+                        <li class="size"><a href="{{ url_for('timeline.explore_category', filter=request_item['category']) }}?size={{ request_item['size'] }}">尺寸:{{ request_item['size'] }}</a></li>
+                        <li class="category">
+                        <a href="{{ url_for('timeline.explore_category', filter=request_item['category']) }}">分类：{{ request_item['category'] }}</a>
+                        </li>
+                    </ul>
+                    <div>
+                        <ul class="inline">
+                            <li class="current-price">RMB{{ request_item['current_price'] }}</li>
+                            <li class="original-price">RMB{{ request_item['original_price'] }}</li>
+                            <li><a href="{{ url_for('sale.buy', pid=request_item['postid']) }}">购买</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <hr />
+                <div class="media profile-media-con">
+                    <a href="{{ url_for('timeline.closet', uid=user['id']) }}" class="pull-left">
+                        <img src="{{ user['photo'] }}" alt="profile image for {{ user['username'] }}" class="media-object" />
+                    </a>
+                    <div class="media-body">
+                        <h4 class="media-heading">{{ user['username'] }}</h4>
+                        <p><span class="listing-count">{{ user['listing_count'] }}</span>件宝贝</p>
+                    </div>
+                </div>
+                <hr />
+                <div class="closet">
+                    <p>最新发布</p>
+                    <ul class="thumbnails top-listings">
+                        {% for t in timeline %}
+                        <li class="span1"><a href="{{ url_for('item.show_item', pid=t['postid']) }}" class="thumbnail"><img src="{{ t['photo'] }}" alt="" /></a></li>
+                        {% endfor %}
+                    </ul>
                 </div>
             </div>
-            <div class="listing-action-con">
-                <ul data-postid="{{ request_item['postid'] }}">
-                    {% if request_item['liked'] %}
-                    <li><a class="like-action liked" href="{{ url_for('item.unlike', pid=request_item['postid']) }}"><i class="icon-heart icon-white"></i></a></li>
-                    {% else %}
-                    <li><a class="like-action" href="{{ url_for('item.like', pid=request_item['postid']) }}"><i class="icon-heart"></i></a></li>
-                    {% endif %}
-                    <li><a href="share"><i class="icon-share"></i></a></li>
-                    <li><a href="{{ url_for('item.add_comment', pid=request_item['postid']) }}"><i class="icon-comment"></i></a></li>
-                </ul>
+        </div>
+        <!-- span4 -->
+
+        <div class="span8 wrapper">
+            <div class="media listing-title-wrapper">
+                <a href="{{ url_for('timeline.closet', uid=user['id']) }}" class="pull-left">
+                    <img class="media-object" src="{{ user['photo'] }}" alt="profile image for{{ user['username'] }}" />
+                </a>
+                <div class="media-body">
+                    <div>
+                        <strong>{{ request_item['title'] }}</strong>
+                        <div class="pull-right">
+                            <ul class="inline">
+                                <li><span id="like-count">{{ request_item['likes'] }}</span><i class="icon-heart"></i></li>
+                                <li><span id="comment-count">{{ request_item['comment_count'] }}</span><i class="icon-comment"></i></li>
+                            </ul>
+                        </div>
+                        <p>发布于<span class="timeago" title="{{ request_item['publish_time'] }}">{{ request_item['publish_time'] }}</span></p>
+                    </div>
+                </div>
             </div>
-            <!-- .listing-action-con -->
+            <!-- listing-title-wrapper -->
+
             <div class="listing-image-con">
                 <a href="{{ request_item['photo'] }}"><img src="{{ request_item['photo'] }}" alt="" /></a>
             </div>
             <!-- .listing-image-con -->
             <div class="listing-caption-con">
                 <p class="description">{{ request_item['description'] }}</p>
+                <p class="listing-actions" data-pid="{{ request_item['postid'] }}">
+                {% if request_item['liked'] %}
+                <a id="like-action" href="{{ url_for('item.unlike', pid=request_item['postid']) }}" class="btn btn-info disabled"><i class="icon-heart icon-white"></i>喜欢</a>
+                {% else %}
+                <a id="like-action" href="{{ url_for('item.like', pid=request_item['postid']) }}" class="btn btn-info"><i class="icon-heart"></i>喜欢</a>
+                {% endif %}
+                <a id="comment-action" href="#" class="btn btn-info"><i class="icon-comment"></i>评论</a>
+                <a href="#" class="btn btn-info"><i class="icon-share"></i>分享</a>
+                </p>
             </div>
             <!-- .listing-caption-con -->
+            <div class="listing-addcomment-con">
+                <div id="addcomment-con">
+                    <a href="#" class="profile-image-link">
+                        <img src="{{ g.user['photo'] }}" alt="Picuture of {{ g.user['username'] }}" class="CommenterImage" />
+                    </a>
+                    <div class="comment-body">
+                        <form action="{{ url_for('item.add_comment', pid=request_item['postid']) }}" data-pid="{{ request_item['postid'] }}" id="InputContainer" method='POST'>
+                            <textarea id="comment-area" name="comment" placeholder="添加评论..." ></textarea>
+                            <div class="help-text hidden">Type @ to recommend this to your friend(s).
+                            <button class="pull-right btn">提交评论</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- #listing-addcomment-con -->
             <div id="listing-comment-con">
                 {% for comment in comments %}
-                <div class="comment">
+                <div class="comment" data-cid="{{ comment['cid'] }}">
                     <a href="{{ url_for('timeline.closet', uid=comment['user']['id']) }}" class="profile-image-link">
                         <img src="{{ comment['user']['photo'] }}" alt="profile image for {{ comment['user']['username'] }}" />
                     </a>
@@ -84,25 +111,10 @@
                 {% endfor %}
             </div>
             <!-- #listing-comment-con -->
-
-
-            <div class="listing-addcomment-con">
-                <div id="addcomment-con">
-                    <a href="#" class="profile-image-link">
-                        <img src="{{ g.user['photo'] }}" alt="Picuture of {{ g.user['username'] }}" class="CommenterImage" />
-                    </a>
-                    <div class="comment-body">
-                        <form action="{{ url_for('item.add_comment', pid=request_item['postid']) }}" data-pid="{{ request_item['postid'] }}" id="InputContainer" method='POST'>
-                            <textarea id="comment-area" name="comment" placeholder="添加评论..." ></textarea>
-                            <p class="help-text">Type @ to recommend this to your friend(s).
-                            <button class="pull-right">提交评论</button>
-                            </p>
-                    </form>
-                    </div>
-                </div>
-            </div>
         </div>
+        <!-- span8  -->
     </div>
+    <!-- row -->
 </div>
 {% endblock %}
 
@@ -115,6 +127,7 @@
 <script type="text/javascript">
 var apiURL = '{{ request.base_url }}';
 var since_id = {{ since_id }};
+var page = {{ page }}
 var isLoading = false;
 
 function onScroll(event) {
@@ -135,7 +148,7 @@ function loadComment() {
     $.ajax({
         url: apiURL,
         dataType: 'json',
-        data: {since_id: since_id}, // Page parameter to make sure we load new data
+        data: {since_id: since_id, page: page}, // Page parameter to make sure we load new data
         success: onLoadComment
     });
 };
@@ -145,11 +158,12 @@ function onLoadComment(data) {
     $('#loaderCircle').hide();
 
     since_id = data.since_id;
+    page = data.page;
     {% raw %}
-    var tmpl ='{{#comments}} <div class="comment"> <a href="/closet/{{user.id}}" class="profile-image-link"> <img src="{{user.photo}}" alt="profile image for {{user.username}}" /> </a> <div class="comment-body"> <p>{{text}}</p> <p><span class="timeago" title="{{publish_time}}">{{publish_time}}</span></p> </div> </div> {{/comments}}';
+    var tmpl ='{{#comments}} <div class="comment" data-cid="{{cid}}"> <a href="/closet/{{user.id}}" class="profile-image-link"> <img src="{{user.photo}}" alt="profile image for {{user.username}}" /> </a> <div class="comment-body"> <p>{{text}}</p> <p><span class="timeago" title="{{publish_time}}">{{publish_time}}</span></p> </div> </div> {{/comments}}';
     {% endraw %}
     var html = Mustache.to_html(tmpl, data);
-    $('listing-comment-con').append(html);
+    $('#listing-comment-con').append(html);
     $('span.timeago').timeago();
 };
 
@@ -167,36 +181,57 @@ $('#InputContainer').submit(function(e){
             if (data) {
                 comment = data.comment;
                 html = "";
-                html += '<div class="comment"><a href="{{ url_for('timeline.closet', uid=g.user['id']) }}" class="profile-image-link"><img src="{{ g.user['photo'] }}" alt="profile image for {{ g.user['username'] }}" /></a><div class="comment-body"><p>' + comment['text'] + '</p><p><span class="timeago" title="' + comment["publish_time"] + '">' + comment["publish_time"] + '</span></p></div></div>'
-                $('#listing-comment-con').append(html);
+                html += '<div class="comment" data-cid="' + comment["cid"] + '"><a href="{{ url_for('timeline.closet', uid=g.user['id']) }}" class="profile-image-link"><img src="{{ g.user['photo'] }}" alt="profile image for {{ g.user['username'] }}" /></a><div class="comment-body"><p>' + comment['text'] + '</p><p><span class="timeago" title="' + comment["publish_time"] + '">' + comment["publish_time"] + '</span></p></div></div>'
+                $('#listing-comment-con').prepend(html);
                 $('#comment-area').val('');
                 $('span.timeago').timeago();
+                $comment_count_element = $('#comment-count')
+                count = parseInt($comment_count_element.text())
+                $comment_count_element.text(count+1);
             }
         }
     });
     return false;
 });
-$('.like-action').click(function(e){
+$('#like-action').click(function(e){
     var $target = $(this)
     var action_url = $target.attr('href');
-    var postid = $target.parent().parent().data('postid');
+    var pid = $target.parent().data('pid');
     $.ajax({
-        type: "POST",
+        type: "GET",
         url: action_url,
         data: null,
         success: function(data) {
             if (data.liked) {
-                $target.attr('href', '/unlike/'+postid);
-                $target.addClass('liked');
+                $target.attr('href', '/unlike/'+pid);
+                $target.addClass('disabled');
                 $target.children('.icon-heart').addClass('icon-white');
+                $like_count_element = $('#like-count');
+                count = parseInt($like_count_element.text());
+                $like_count_element.text(count+1);
             }else {
-                $target.attr('href', '/like/'+postid);
-                $target.removeClass('liked');
+                $target.attr('href', '/like/'+pid);
+                $target.removeClass('disabled');
                 $target.children('.icon-heart').removeClass('icon-white');
+                $like_count_element = $('#like-count');
+                count = parseInt($like_count_element.text());
+                $like_count_element.text(count-1);
             }
         }
     });
     return false;
+});
+$('#comment-action').click(function(e) {
+    var offset = $('#comment-area').offset();
+    $('body').scrollTop(offset.top);
+    $('#comment-area').focus();
+    return false;
+});
+$('#comment-area').focusin(function(){
+    $(this).next('div').removeClass('hidden');
+});
+$('#comment-area').focusout(function(){
+    $(this).next('div').addClass('hidden');
 });
 </script>
 {% endblock %}
