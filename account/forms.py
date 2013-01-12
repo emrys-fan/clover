@@ -62,6 +62,7 @@ class SigninForm(Form):
         update_info = {'token': uuid.uuid4().get_hex(), 'updated_at': time.time()}
         # update token
         current_app.redis.hmset('user:%s'%uid, update_info)
+        user.update(update_info)
         self.user = user
 
         return user
