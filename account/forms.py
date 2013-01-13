@@ -16,6 +16,7 @@ class SignupForm(Form):
     email = EmailField('电子邮箱', validators=[Required('缺少电子邮箱'), Email()])
     password = PasswordField('密码', validators=[Required()])
     confirm = PasswordField('确认密码', validators=[Required(), EqualTo('password', message="密码不匹配")])
+    photo = URLField('profie image', validators=[Optional(), URL()])
 
     def validate_username(self, field):
         uid = current_app.redis.get('uname:%s:uid'%field.data)
@@ -30,7 +31,7 @@ class SignupForm(Form):
                 'username': self.username.data,
                 'password': generate_password_hash(self.password.data),
                 'email': self.email.data,
-                'photo': current_app.config['DEFAULT_PROFILE_IMAGE'],
+                'photo': self.photo.data or current_app.config['DEFAULT_PROFILE_IMAGE'],
                 'token': token,
                 'created_at': time.time()}
 

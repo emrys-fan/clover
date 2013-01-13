@@ -88,7 +88,7 @@ def signup():
         login(user)
         flash('注册成功')
 
-        return redirect(url_for('.setting'))
+        return redirect(url_for('timeline.public'))
 
     return render_template('account/signup.html', form=form)
 

@@ -1,4 +1,5 @@
-from flask import session, current_app
+import time
+from flask import session, current_app, request
 from weibo import Client
 
 def get_weibo_client(redirect_url):
@@ -8,28 +9,30 @@ def get_weibo_client(redirect_url):
 
 
 def get_current_user():
-    if 'id' not in session or 'token' not in session:
+    token = request.headers.get('X-Clover-Access', request.args.get('token', None))
+    if 'token' in session:
+        token = token or session['token']
+
+    if not token:
         return None
 
-    user = current_app.redis.hgetall('user:%s'%session['id'])
-    if not user:
+    user_session = current_app.redis.hgetall('session:%s'%token)
+    if not user_session:
         return None
-    if user['token'] != session['token']:
-        logout()
-        return None
+
+    user = current_app.redis.hgetall('user:%s'%user_session['uid'])
+
     return user
 
 
 def login(user):
     if not user:
         return None
-    session['id'] = user['id']
     session['token'] = user['token']
+    current_app.redis.hmset('session:%s'%user['token'],
+            {'uid': user['id'], 'token': user['token'], 'created_at': time.time()})
     return user
 
 
 def logout():
-    if 'id' not in session:
-        return
-    session.pop('id')
-    session.pop('token')
+    session.pop('token', None)
