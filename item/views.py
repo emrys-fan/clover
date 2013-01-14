@@ -4,7 +4,7 @@
 import time
 from flask import Blueprint, request, current_app, g, jsonify, \
         render_template, abort, flash
-from account.utils import login_required
+from account.decorators import login_required
 from timeline.helper import get_timeline
 from forms import PostForm
 

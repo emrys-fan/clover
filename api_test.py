@@ -1,114 +1,244 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import requests
+import time
+import uuid
 import json
-from urlparse import urljoin
+import unittest
+from app import app
+from werkzeug.security import generate_password_hash
 
-session_token_1 = '79204bdf336f4a118dec775be255bdb7'
-session_token_2 = '7ee87fd1a93b471a91b0d865cbe7cb18'
-user = {'id': 1}
+ajax_headers = {'X-Requested-With': 'XMLHttpRequest'}
 
-def test_login(session):
-    r = session.post(urljoin(session.base_url, '/signup'),
-            data={'username': 'emrys',
-                'password': 'hello',
-                'email': 'emrys@muxucao.com',
-                'confirm': 'hello'})
-    assert "注册成功" in r.text
-    r = session.post(urljoin(session.base_url, '/signin'),
-            data={'username':'emrys', 'password':'hello'})
-    assert "成功登录" in r.text
+class APITest(unittest.TestCase):
+    """docstring for APIText"""
 
-def test_items(session):
-    # create item
-    data = {'title': 'How to dress: fluffy jumpers',
-            'description': 'The difference between a fleece and a rich angora sweater is like the difference between an electric radiator and an open fire',
-            'original_price': 600.00,
-            'current_price': 300.00,
-            'brand': 'TakeIT',
-            'size': 'Middle',
-            'category': 'others',
-            'photo': 'http://custoshopsandbox.develoop.net/row/es/skin/frontend/enterprise/custobarcelona/images/men.jpg'
-            }
-    r = session.post(urljoin(session.base_url, '/item/create'), data=data)
-    print r.text
+    def setUp(self):
+        """docstring for setUp"""
+        pass
 
-    # show item
-    item = json.loads(r.text)
-    r = session.get(urljoin(session.base_url, '/item/show/%s'%item['postid']))
-    print r.text
+    def signup(self, username, password, confirm=None, email=None, recommender=None):
+        if confirm is None:
+            confirm = password
+        if email is None:
+            email = username + '@muxucao.com'
+        if recommender == None:
+            recommender = username
 
-    # comment item
-    comment = {'text': 'comment from request test.'}
-    r = session.post(urljoin(session.base_url, '/comment/item/%s'%item['postid']), data=comment)
-    r = session.post(urljoin(session.base_url, '/comment/item/%s'%item['postid']), data=comment)
-    r = session.post(urljoin(session.base_url, '/comment/item/%s'%item['postid']), data=comment)
-    r = session.post(urljoin(session.base_url, '/comment/item/%s'%item['postid']), data=comment)
-    print r.text
+        return self.client.post('/api/signup', data={
+            'recommender': recommender,
+            'username': username,
+            'password': password,
+            'confirm': confirm,
+            'email': email
+            }, follow_redirects=True)
 
-    # show comments list
-    comment_ret = json.loads(r.text)
-    r = session.get(urljoin(session.base_url, '/item/comment/%s'%comment_ret['cid']))
-    print r.text
+    def signin(self, username, password):
+        return self.client.post('/api/signin', data={
+            'username': username,
+            'password': password
+            })
 
-    # show public
-    r = session.get(urljoin(session.base_url, '/public'))
-    print r.text
-    # show user feed
-    r = session.get(urljoin(session.base_url, '/feed'))
-    print r.text
-    # show user comments
-    r = session.get(urljoin(session.base_url, '/comments'))
-    # show user closet
-    r = session.get(urljoin(session.base_url, '/closet'))
-    print r.text
-    # show user likes
-    r = session.get(urljoin(session.base_url, '/likes'))
-    print r.text
-    # listing user following
-    r = session.get(urljoin(session.base_url, '/following'))
-    print r.text
-    r = session.get(urljoin(session.base_url, '/user/following/%s'%user['id']))
-    print r.text
-    # listing user followed
-    r = session.get(urljoin(session.base_url, '/followed'))
-    print r.text
-    r = session.get(urljoin(session.base_url, '/user/followed/%s'%user['id']))
-    print r.text
+    def signout(self):
+        return self.client.get('/signout', follow_redirects=True)
 
-    # like action
-    ## listing item likes
-    r = session.get(urljoin(session.base_url, '/item/likes/%s'%item['postid']))
-    print r.text
-    ## like it
-    r = session.post(urljoin(session.base_url, '/like/%s'%item['postid']))
-    print r.text
-    ## listing item likes
-    r = session.get(urljoin(session.base_url, '/item/likes/%s'%item['postid']))
-    print r.text
-    ## listing user likes
-    r = session.get(urljoin(session.base_url, '/likes'))
-    print r.text
-    ## unlike it
-    r = session.post(urljoin(session.base_url, '/unlike/%s'%item['postid']))
-    print r.text
-    ## listing item likes
-    r = session.get(urljoin(session.base_url, '/item/likes/%s'%item['postid']))
-    print r.text
-    ## listing user likes
-    r = session.get(urljoin(session.base_url, '/likes'))
-    print r.text
+    def initialize_recommemder(self, username, password):
+        # setup recommemder
+        uid = app.redis.hincrby('system', 'next_uid', 1)
+        recommender = {'id': uid,
+                'username': username,
+                'password': generate_password_hash(password),
+                'email': username+'@gmail.com',
+                'photo': app.config['DEFAULT_PROFILE_IMAGE'],
+                'token': uuid.uuid4().get_hex(),
+                'created_at': time.time(),
+                'invite_quota_left': 2}
+        app.redis.set('uname:%s:uid'%username, uid)
+        app.redis.hmset('user:%s'%uid, recommender)
 
-    # follow action
-    r = session.get(urljoin(session.base_url, '/follow/%s'%user['id']))
-    print r.text
-    r = session.get(urljoin(session.base_url, '/unfollow/%s'%user['id']))
-    print r.text
+    def test_signup_disable_invite_mode(self):
+        # disable INVITE_MODE
+        app.config['INVITE_MODE'] = False
+        app.redis.flushdb()
+        self.client = app.test_client()
+
+        # signup
+        rv = self.signup('emrys', 'hello')
+        assert rv.mimetype == 'application/json'
+        jsondata = json.loads(rv.data)
+        assert 'emrys' == jsondata['user']['username']
+        self.signout()
+
+
+
+        # signup with a exist name
+        rv = self.signup('emrys', 'hello')
+        assert rv.mimetype == 'application/json'
+        jsondata = json.loads(rv.data)
+        assert 'username' in jsondata['message']
+
+        # signup with a name which is less than 5 chars
+        rv = self.signup('me', 'hello')
+        assert rv.mimetype == 'application/json'
+        jsondata = json.loads(rv.data)
+        assert 'Field must be between 5 and 30 characters long.' in jsondata['message']['username'][0]
+        # signup with a name  which is more than 30 chars
+        rv = self.signup('abcdefghijjihgfedcbaabcdefghijk', 'hello')
+        jsondata = json.loads(rv.data)
+        assert 'Field must be between 5 and 30 characters long.' in jsondata['message']['username'][0]
+
+    def test_signup_enable_invite_mode(self):
+        # enable INVITE_MODE
+        app.config['INVITE_MODE'] = True
+        app.redis.flushdb()
+        self.client = app.test_client()
+
+        rv = self.signup('emrys', 'hello')
+        assert rv.mimetype == 'application/json'
+        jsondata = json.loads(rv.data)
+        assert 'recommender' in jsondata['message']
+
+        self.initialize_recommemder('google', 'hello')
+        rv = self.signup('emrys', 'hello', recommender="google")
+        assert rv.mimetype == 'application/json'
+        jsondata = json.loads(rv.data)
+        assert 'emrys' == jsondata['user']['username']
+        # check google's followings and followers
+        rv = self.client.get('/following/1', headers=ajax_headers)
+        jsondata = json.loads(rv.data)
+        exist = [user for user in jsondata['followings'] if user['username'] == 'emrys']
+        assert exist !=  []
+        rv = self.client.get('/follower/1', headers=ajax_headers)
+        jsondata = json.loads(rv.data)
+        exist = [user for user in jsondata['followers'] if user['username'] == 'emrys']
+        assert exist !=  []
+        self.signout()
+        # check emrys's followings and followers
+        self.signin('emrys', 'hello')
+        rv = self.client.get('/following/2', headers=ajax_headers)
+        jsondata = json.loads(rv.data)
+        exist = [user for user in jsondata['followings'] if user['username'] == 'google']
+        assert exist !=  []
+        rv = self.client.get('/follower/2', headers=ajax_headers)
+        jsondata = json.loads(rv.data)
+        exist = [user for user in jsondata['followers'] if user['username'] == 'google']
+        assert exist !=  []
+
+    def test_signin(self):
+        """docstring for test_signin"""
+        # disable INVITE_MODE
+        app.config['INVITE_MODE'] = False
+        app.redis.flushdb()
+        self.client = app.test_client()
+
+        # signup
+        rv = self.signup('emrys', 'hello')
+        assert rv.mimetype == 'application/json'
+        jsondata = json.loads(rv.data)
+        assert 'emrys' == jsondata['user']['username']
+        rv = self.signout()
+
+        # signin
+        rv = self.signin('emrys', 'hello')
+        jsondata = json.loads(rv.data)
+        assert 'emrys' == jsondata['user']['username']
+
+    def test_follow_action(self):
+        """docstring for test_follow_action"""
+        # enable INVITE_MODE
+        app.config['INVITE_MODE'] = True
+        app.redis.flushdb()
+        self.client = app.test_client()
+
+        # set up 2 users
+        self.initialize_recommemder('somebody1', 'hello')
+        self.initialize_recommemder('somebody2', 'hello')
+
+        # signup 2 users with recommender
+        self.signup('emrys', 'hello', recommender='somebody1')
+        self.signout()
+        self.signup('apple', 'hello', recommender='somebody1')
+        self.signout()
+        self.signup('google', 'hello', recommender='somebody2')
+        self.signout()
+        self.signup('facebook', 'hello', recommender='somebody2')
+        self.signout()
+
+        # check
+        self.signin('somebody1', 'hello')
+        rv = self.client.get('/following/1', headers=ajax_headers)
+        jsondata = json.loads(rv.data)
+        assert len(jsondata['followings']) == 2
+        rv = self.client.get('/follower/1', headers=ajax_headers)
+        jsondata = json.loads(rv.data)
+        assert len(jsondata['followers']) == 2
+        # follow someone that I already followed makes no change
+        rv = self.client.get('/follow/3')
+        assert rv.status_code == 200
+        rv = self.client.get('/following/1', headers=ajax_headers)
+        jsondata = json.loads(rv.data)
+        assert len(jsondata['followings']) == 2
+        # follow someone new
+        rv = self.client.get('/follow/5')
+        jsondata = json.loads(rv.data)
+        assert rv.status_code == 200
+        rv = self.client.get('/following/1', headers=ajax_headers)
+        jsondata = json.loads(rv.data)
+        assert len(jsondata['followings']) == 3
+        # unfollow someone that I don't followed yet makes no change
+        rv = self.client.get('/unfollow/6')
+        assert rv.status_code == 400
+        rv = self.client.get('/following/1', headers=ajax_headers)
+        jsondata = json.loads(rv.data)
+        assert len(jsondata['followings']) == 3
+        # unfollow someone that I already followed
+        rv = self.client.get('/unfollow/3')
+        rv = self.client.get('/following/1', headers=ajax_headers)
+        jsondata = json.loads(rv.data)
+        assert len(jsondata['followings']) == 2
+
+    def test_profile(self):
+        """docstring for test_self"""
+        # enable INVITE_MODE
+        app.config['INVITE_MODE'] = True
+        app.redis.flushdb()
+        self.client = app.test_client()
+
+        self.initialize_recommemder('emrys', 'hello')
+        self.signin('emrys', 'hello')
+        # get user profile
+        rv = self.client.get('/api/profile/update')
+        jsondata = json.loads(rv.data)
+        assert jsondata['username'] == 'emrys'
+        # update user profile
+        profile = {'username': jsondata['username'],
+                'email': jsondata['email']}
+        rv = self.client.post('/api/profile/update', data=profile)
+        assert rv.status_code == 200
+        # update username conflict with another user
+        self.signout()
+        self.signup('google', 'hello', recommender='emrys')
+        rv = self.client.post('/api/profile/update', data=profile)
+        assert rv.status_code == 400
+
+    def test_change_password(self):
+        """docstring for test_change_password"""
+        # disable INVITE_MODE
+        app.config['INVITE_MODE'] = False
+        app.redis.flushdb()
+        self.client = app.test_client()
+
+        self.signup('emrys', 'hello')
+        # with correct password
+        data = {'password': 'hello',
+                'new_password': 'default',
+                'confirm': 'default'}
+        rv = self.client.post('/api/change/password', data=data)
+        assert rv.status_code == 200
+        # wrong password
+        rv = self.client.post('/api/change/password', data=data)
+        assert rv.status_code == 400
+
 
 if __name__ == '__main__':
-    headers = {'X-Requested-With': 'XMLHttpRequest'}
-    session = requests.session(headers=headers)
-    session.base_url = 'http://ld.youpinapp.com:5000/'
-    test_login(session)
-    #test_items(session)
+    unittest.main()

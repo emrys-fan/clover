@@ -12,6 +12,9 @@ class AppTest(unittest.TestCase):
     def setUp(self):
         # disable invite mode for initial signup
         app.config['INVITE_MODE'] = False
+        # disable csrf protection when test
+        app.config['CSRF_ENABLED'] = False
+
         self.app = app.test_client()
         app.redis.flushdb()
 
@@ -48,6 +51,7 @@ class AppTest(unittest.TestCase):
 
     def test_signup(self):
         rv = self.signup('emrys', 'hello')
+        print rv.data
         assert '注册成功' in rv.data
         rv = self.signup('emrys', 'hello')
         print rv.status_code
@@ -415,6 +419,7 @@ class AppTest(unittest.TestCase):
         # check feed count
         rv = self.app.get('/feed', headers=ajax_headers)
         ret = json.loads(rv.data)
+        print rv
         assert len(ret['timeline']) == 0
 
         # try to follow yourself will get a 404 error

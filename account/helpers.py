@@ -9,15 +9,12 @@ def get_weibo_client(redirect_url):
 
 
 def get_current_user():
-    token = request.headers.get('X-Clover-Access', request.args.get('token', None))
-    if 'token' in session:
-        token = token or session['token']
-
+    token = request.headers.get('X-Clover-Access', request.args.get('token', session.get('token', None)))
     if not token:
         return None
 
     user_session = current_app.redis.hgetall('session:%s'%token)
-    if not user_session:
+    if not user_session or token!= user_session['token']:
         return None
 
     user = current_app.redis.hgetall('user:%s'%user_session['uid'])

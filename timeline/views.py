@@ -1,6 +1,6 @@
 from flask import Blueprint, current_app, request, render_template, g, \
         jsonify
-from account.utils import login_required
+from account.decorators import login_required
 from helper import get_timeline, get_comment
 
 bp_timeline = Blueprint('timeline', __name__)
