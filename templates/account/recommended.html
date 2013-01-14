@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container">
-    {% for user in invitations %}
+    {% for user in recommended %}
     <div class="media">
         <a href="{{ url_for('timeline.closet', uid=user['id']) }}" class="pull-left">
             <img src="{{ user['photo'] }}" alt="profile image for {{ user['username'] }}" class="media-object" />

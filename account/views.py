@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import time
-import uuid
 from flask import Blueprint, current_app, render_template, request, g, \
-        redirect, url_for, flash,abort, session
+        redirect, url_for, flash
 from .forms import SigninForm, SignupForm, ProfileForm, \
         API_SigninForm, API_SignupForm, API_RecommemderForm, \
         API_ProfileForm, API_PasswordFrom
-from .helpers import login, logout, get_weibo_client
-from .decorators import login_required, invitation_required
+from .helpers import login, logout
+from .decorators import login_required
 from snippets import jsonify
 
 bp_account = Blueprint('account', __name__)
@@ -45,22 +44,27 @@ def api_signup():
 @bp_account.route('/signin', methods=['GET', 'POST'])
 def signin():
     next_url = request.args.get('next', '/')
+
     if g.user:
         return redirect(next_url)
+
     form = SigninForm()
     if form.validate_on_submit():
         login(form.user)
         flash('成功登录')
         return redirect(next_url)
+
     return render_template('account/signin.html', form=form)
 
 @bp_account.route('/api/signin', methods=['POST'])
 def api_signin():
     next_url = request.args.get('next', '/')
+
     form = API_SigninForm()
     if form.validate_on_submit():
         login(form.user)
         return jsonify(user=form.user)
+
     return jsonify(next_url=next_url, message="error", status_code=400)
 
 
@@ -80,8 +84,10 @@ def following(uid):
     user['following_count'] = current_app.redis.zcard('user:%s:following'%uid) or 0
     user['follower_count'] = current_app.redis.zcard('user:%s:follower'%uid) or 0
 
-    followingid_list = current_app.redis.zrevrange('user:%s:following'%uid, rev_since_id, rev_since_id+PAGE_SIZE)
-    page = page + 1
+    followingid_list = current_app.redis.zrevrange('user:%s:following'%uid,
+            rev_since_id,
+            rev_since_id+PAGE_SIZE)
+    page += 1
 
     followings = []
     for id in followingid_list:
@@ -93,9 +99,15 @@ def following(uid):
         user['followed'] = True
 
     if request.is_xhr or request.headers.get('X-Clover-Access', None):
-        return jsonify(user=user, followings=followings, since_id=since_id, page=page)
+        return jsonify(user=user,
+                followings=followings,
+                since_id=since_id,
+                page=page)
 
-    return render_template('account/following.html', user=user, followings=followings, since_id=since_id, page=page)
+    return render_template('account/following.html',
+            user=user,
+            followings=followings,
+            since_id=since_id, page=page)
 
 
 @bp_account.route('/follower/<int:uid>')
@@ -117,8 +129,10 @@ def follower(uid):
     if current_app.redis.zscore('user:%s:follower'%g.user['id'], uid):
         user['followed'] = True
 
-    followedid_list = current_app.redis.zrevrange('user:%s:follower'%uid, rev_since_id, rev_since_id+PAGE_SIZE)
-    page = page + 1
+    followedid_list = current_app.redis.zrevrange('user:%s:follower'%uid,
+            rev_since_id,
+            rev_since_id+PAGE_SIZE)
+    page += 1
 
     followers = []
     for id in followedid_list:
@@ -127,9 +141,16 @@ def follower(uid):
         followers.append(f)
 
     if request.is_xhr or request.headers.get('X-Clover-Access', None):
-        return jsonify(user=user, followers=followers, since_id=since_id, page=page)
+        return jsonify(user=user,
+                followers=followers,
+                since_id=since_id,
+                page=page)
 
-    return render_template('account/follower.html', user=user, followers=followers, since_id=since_id, page=page)
+    return render_template('account/follower.html',
+            user=user,
+            followers=followers,
+            since_id=since_id,
+            page=page)
 
 
 @bp_account.route('/follow/<int:uid>')
@@ -224,9 +245,9 @@ def check_recommemder():
     return jsonify(message=form.errors)
 
 
-@bp_account.route('/invitations')
+@bp_account.route('/recommended')
 @login_required
-def invitations():
+def recommended():
     invitation_count = current_app.redis.zcard('user:%s:recommended'%g.user['id'])
     since_id = int(request.args.get('since_id', invitation_count))
     page = int(request.args.get('page', 1))
@@ -236,122 +257,17 @@ def invitations():
             rev_since_id,
             rev_since_id+PAGE_SIZE)
     page += 1
-    invitations = []
+    recommended = []
     fields = ['id', 'username', 'photo', 'about']
     for uid in recent_invitation_ids:
         user = current_app.redis.hmget('user:%s'%uid, fields)
         user = dict(zip(fields, user))
-        invitations.append(user)
+        recommended.append(user)
 
     if request.is_xhr or request.headers.get('X-Clover-Access', None):
-        return jsonify(invitations=invitations, since_id=since_id, page=page)
+        return jsonify(recommended=recommended, since_id=since_id, page=page)
 
-    return render_template('account/invitations.html',
-            invitations=invitations,
+    return render_template('account/recommended.html',
+            recommended=recommended,
             since_id=since_id,
             page=page)
-
-
-@bp_account.route('/signin/auth/weibo', methods=['GET'])
-def weibo_signin():
-    access_token = request.cookies.get('access_token', None)
-    client = get_weibo_client(request.url)
-
-    if access_token:
-        return redirect(url_for('index'))
-
-    if request.args.get("code", ''):
-        code = request.args.get('code')
-        client.set_code(code)
-        user = client.get("users/show", uid=client.uid)
-        fields = ["id", "screen_name", "profile_image_url"]
-        weibo = {}
-
-        for field in fields:
-            weibo[field] = user.get(field)
-
-        weibo.update({"access_token": client.access_token,
-            "session_expires": client.expires_in})
-
-        if weibo.get('id', None):
-            exist_weibo = current_app.redis.hgetall('weibo:%s'%weibo['id'])
-        else:
-            abort(403)
-
-        if exist_weibo:
-            uid = exist_weibo['uid']
-            g.user = current_app.redis.hgetall('user:%s'%uid)
-
-            # refresh weibo information
-            current_app.redis.hmset('weibo:%s'%weibo['id'], weibo)
-            login(g.user)
-            flash('成功登录')
-            return redirect(url_for('index'))
-        else:
-            flash('请先行注册')
-            return redirect(url_for('account.signup'))
-
-    return redirect(client.authorize_url)
-
-
-
-@bp_account.route('/auth/weibo',methods=['GET'])
-@invitation_required
-def auth_weibo():
-    access_token = request.cookies.get('access_token', None)
-    client = get_weibo_client(request.url)
-
-    if access_token:
-        return redirect('/')
-
-    if request.args.get("code", ''):
-        code = request.args.get('code')
-        client.set_code(code)
-        user = client.get("users/show", uid=client.uid)
-        fields = ["id", "screen_name", "profile_image_url", "description"]
-        weibo = {}
-
-        for field in fields:
-            weibo[field] = user.get(field)
-
-        weibo.update({"access_token": client.access_token,
-            "session_expires": client.expires_in})
-
-        if weibo.get('id', None):
-            exist_weibo = current_app.redis.hgetall('weibo:%s'%weibo['id'])
-        else:
-            abort(403)
-
-        if exist_weibo:
-            uid = exist_weibo['uid']
-            g.user = current_app.redis.hgetall('user:%s'%uid)
-
-            # refresh weibo information
-            current_app.redis.hmset('weibo:%s'%weibo['id'], weibo)
-            login(g.user)
-        else:
-            uid = current_app.redis.hincrby('system', 'next_uid', 1)
-            weibo.update({'uid': uid})
-
-            g.user = {'id': uid,
-                    'username': weibo['screen_name'],
-                    'active': True,
-                    'photo': weibo['profile_image_url'],
-                    'weibo': weibo['id'],
-                    'about': weibo['description'],
-                    'token': uuid.uuid4().get_hex()}
-
-            current_app.redis.hmset('weibo:%s'%weibo['id'], weibo)
-            current_app.redis.hmset('user:%s'%uid, g.user)
-            login(g.user)
-
-        if hasattr(g, 'recommender'):
-            current_app.redis.zadd('user:%s:recommended'%g.recommender['id'], g.user['id'], time.time())
-            current_app.redis.hset('user:%s'%g.user['id'], 'rid', g.recommender['id'])
-            current_app.redis.hincrby('user:%s'%g.recommender['id'], 'invite_quota_left', -1)
-            current_app.redis.hincrby('user:%s'%g.recommender['id'], 'invite_count', 1)
-            session.pop('rid', None)
-
-        return redirect(url_for('index'))
-
-    return redirect(client.authorize_url)

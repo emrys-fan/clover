@@ -19,3 +19,7 @@ if __name__ == '__main__':
     print jsondata
     assert jsondata['username'] == 'somebody'
 
+    rv = requests.get(urljoin(base_url, '/following/%s'%jsondata['id']), headers=headers)
+    jsondata = json.loads(rv.text)
+    print jsondata
+    assert jsondata['followings'] == []

@@ -36,7 +36,7 @@
                     <li><a href="{{ url_for('sale.sales') }}">卖出的宝贝</a></li>
                     <li class="divider"></li>
                     <li><a href="{{ url_for('timeline.comments') }}">我的评论</a></li>
-                    <li><a href="{{ url_for('account.invitations') }}">发出的邀请函</a></li>
+                    <li><a href="{{ url_for('account.recommended') }}">发出的邀请函</a></li>
                     <li><a href="{{ url_for('account.setting') }}">个人设置</a></li>
                     <li><a href="{{ url_for('account.signout') }}">退出</a></li>
                     <li class="divider"></li>
@@ -51,6 +51,7 @@
         {% else %}
         <ul class="nav pull-right">
             <li><a href="{{ url_for('account.signin') }}">登录</a></li>
+            <li><a href="{{ url_for('account.signup') }}">注册</a></li>
         </ul>
         {% endif %}
         </div>
