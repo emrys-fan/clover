@@ -68,6 +68,7 @@ def api_signin():
     return jsonify(next_url=next_url, message="error", status_code=400)
 
 
+@bp_account.route('/api/following/<int:uid>')
 @bp_account.route('/following/<int:uid>')
 @login_required
 def following(uid):
@@ -110,6 +111,7 @@ def following(uid):
             since_id=since_id, page=page)
 
 
+@bp_account.route('/api/follower/<int:uid>')
 @bp_account.route('/follower/<int:uid>')
 @login_required
 def follower(uid):
@@ -190,14 +192,16 @@ def unfollow(uid):
     return jsonify(followed=False, message="取消关注成功")
 
 
-@bp_account.route('/setting', methods=['GET', 'POST'])
+@bp_account.route('/profile/update', methods=['GET', 'POST'])
 @login_required
 def setting():
     form = ProfileForm()
+
     if form.validate_on_submit():
         form.save()
         flash("修改配置成功")
         return redirect(url_for('timeline.closet'))
+
     return render_template('account/setting.html', form=form)
 
 
@@ -226,11 +230,15 @@ def change_password():
     return jsonify(message=form.errors, status_code=400)
 
 
-
+@bp_account.route('/api/signout')
 @bp_account.route('/signout')
 def signout():
     next_url = request.args.get('next', '/')
     logout()
+
+    if request.headers.get('X-Clover-Access', None):
+        return jsonify(message='success')
+
     flash('已退出')
     return redirect(next_url)
 
@@ -245,6 +253,7 @@ def check_recommemder():
     return jsonify(message=form.errors)
 
 
+@bp_account.route('/api/recommended')
 @bp_account.route('/recommended')
 @login_required
 def recommended():
@@ -257,6 +266,7 @@ def recommended():
             rev_since_id,
             rev_since_id+PAGE_SIZE)
     page += 1
+
     recommended = []
     fields = ['id', 'username', 'photo', 'about']
     for uid in recent_invitation_ids:

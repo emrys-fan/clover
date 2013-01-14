@@ -1,6 +1,7 @@
 body {
     position: relative;
     padding-top: 40px;
+    background: #F9F9F9;
 }
 
 .container {
@@ -9,6 +10,25 @@ body {
 }
 
 textarea {
+    border-radius: 0;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+}
+
+.form-setting input,
+.form-signin input,
+.form-signup input {
+    height: 40px;
+    font-size: 16px;
+    border-radius: 0;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    margin: 10px 0;
+}
+
+.form-setting button,
+.form-signin button,
+.form-signup button {
     border-radius: 0;
     -webkit-border-radius: 0;
     -moz-border-radius: 0;

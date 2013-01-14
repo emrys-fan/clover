@@ -51,15 +51,13 @@ class AppTest(unittest.TestCase):
 
     def test_signup(self):
         rv = self.signup('emrys', 'hello')
-        print rv.data
         assert '注册成功' in rv.data
         rv = self.signup('emrys', 'hello')
-        print rv.status_code
         assert '该用户名已注册' in rv.data
         rv = self.signup('', 'hello')
         assert '缺少用户名' in rv.data
         rv = self.signup('me', 'hello')
-        assert 'Field must be between 3 and 20 characters long' in rv.data
+        assert 'Field must be between 5 and 30 characters long' in rv.data
 
     def test_signin(self):
         rv = self.signup('emrys', 'hello')
@@ -115,9 +113,9 @@ class AppTest(unittest.TestCase):
         assert '尚未关注' == ret['message']
         # follow or unfollow somebody does not exist will get a error
         rv = self.app.get('/follow/100')
-        assert rv.status_code == 404
+        assert rv.status_code == 400
         rv = self.app.get('/unfollow/100')
-        assert rv.status_code == 404
+        assert rv.status_code == 400
 
         # following 6 buddies
         rv = self.app.get('/follow/1')
@@ -335,7 +333,7 @@ class AppTest(unittest.TestCase):
         assert ret['liked'] == True
         # like a nonexists item will get a error
         rv = self.app.get('/like/100')
-        assert rv.status_code == 404
+        assert rv.status_code == 400
 
         rv = self.app.get('/like/1')
         rv = self.app.get('/like/2')
@@ -419,12 +417,11 @@ class AppTest(unittest.TestCase):
         # check feed count
         rv = self.app.get('/feed', headers=ajax_headers)
         ret = json.loads(rv.data)
-        print rv
         assert len(ret['timeline']) == 0
 
         # try to follow yourself will get a 404 error
         rv = self.app.get('/follow/3')
-        assert rv.status_code == 404
+        assert rv.status_code == 400
 
     def test_show_user_comment(self):
         self.signup('emrys', 'hello')

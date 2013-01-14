@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import time
-from flask import Blueprint, request, current_app, g, jsonify, \
+from flask import Blueprint, request, current_app, g, \
         render_template, abort, flash
 from account.decorators import login_required
 from timeline.helper import get_timeline
-from forms import PostForm
+from .forms import PostForm
+from snippets import jsonify
 
 bp_item = Blueprint('item', __name__)
 
@@ -134,7 +135,7 @@ def like(pid):
         current_app.redis.zadd('user:%s:like'%g.user['id'], pid, time.time())
         return jsonify(liked=True)
     else:
-        abort(404)
+        return jsonify(status_code=400)
 
 
 @bp_item.route('/unlike/<int:pid>')
@@ -147,4 +148,4 @@ def unlike(pid):
         current_app.redis.zrem('user:%s:like'%g.user['id'], pid)
         return jsonify(liked=False)
     else:
-        abort(404)
+        return jsonify(status_code=400)

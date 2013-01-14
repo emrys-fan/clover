@@ -88,7 +88,7 @@
                     </a>
                     <div class="comment-body">
                         <form action="{{ url_for('item.add_comment', pid=request_item['postid']) }}" data-pid="{{ request_item['postid'] }}" id="InputContainer" method='POST'>
-                            <textarea id="comment-area" name="comment" placeholder="添加评论..." ></textarea>
+                            <textarea id="comment-area" class="no-radius" name="comment" placeholder="添加评论..." ></textarea>
                             <div class="help-text hidden">Type @ to recommend this to your friend(s).
                             <button class="pull-right btn">提交评论</button>
                             </div>
@@ -188,6 +188,7 @@ $('#InputContainer').submit(function(e){
                 $comment_count_element = $('#comment-count')
                 count = parseInt($comment_count_element.text())
                 $comment_count_element.text(count+1);
+                $('.help-text').addClass('hidden');
             }
         }
     });
@@ -229,9 +230,6 @@ $('#comment-action').click(function(e) {
 });
 $('#comment-area').focusin(function(){
     $(this).next('div').removeClass('hidden');
-});
-$('#comment-area').focusout(function(){
-    $(this).next('div').addClass('hidden');
 });
 </script>
 {% endblock %}

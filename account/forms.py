@@ -12,7 +12,7 @@ from flask.ext.wtf.html5 import EmailField, URLField
 
 
 class SignupForm(Form):
-    recommender = TextField('推荐人', validators=[Required()])
+    recommender = TextField('推荐人', validators=[])
     username = TextField('用户名', validators=[Required('缺少用户名'), Length(min=5, max=30)])
     email = EmailField('电子邮箱', validators=[Required('缺少电子邮箱'), Email()])
     password = PasswordField('密码', validators=[Required()])
@@ -123,12 +123,12 @@ class API_SigninForm(SigninForm):
 
 
 class ProfileForm(Form):
-    username = TextField('username', validators=[Required()])
-    email = TextField('email', validators=[Required(), Email()])
-    about = TextAreaField('about')
-    city = TextField('city')
-    photo = URLField('profie image', validators=[Optional(), URL()])
-    website = URLField('Website', validators=[Optional(), URL()])
+    username = TextField('用户名', validators=[Required()])
+    email = TextField('电子邮箱', validators=[Required(), Email()])
+    about = TextAreaField('关于你')
+    city = TextField('现居城市')
+    photo = URLField('个性头像', validators=[Optional(), URL()])
+    website = URLField('个人博客', validators=[Optional(), URL()])
 
     def validate_username(self, field):
         if g.user['username'] == field.data:

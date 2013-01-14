@@ -5,10 +5,13 @@
 <div class="container">
 <form action="{{ request.url }}" class="form-signin form-horizontal" method="POST">
     {{ form.hidden_tag() }}
-    {{ render_field(form.username) }}
-    {{ render_field(form.password) }}
+    {{ render_field(form.username, class='input-block-level') }}
+    {{ render_field(form.password, class='input-block-level') }}
     {{ render_submit('登录') }}
-    <a href="{{ url_for('account.signup') }}">注册</a>
+    <hr />
+    <div>
+        <p>没有帐号？<a href="{{ url_for('account.signup') }}">注册</a></p>
+    </div>
 </form>
 </div>
 {% endblock %}

@@ -5,12 +5,16 @@
 <div class="container">
 <form action="{{ url_for('.signup') }}" class="form-signup form-horizontal" method="POST">
     {{ form.hidden_tag() }}
-    {{ render_field(form.recommender) }}
-    {{ render_field(form.username) }}
-    {{ render_field(form.email) }}
-    {{ render_field(form.password) }}
-    {{ render_field(form.confirm) }}
+    {{ render_field(form.recommender, class='input-block-level') }}
+    {{ render_field(form.username, class='input-block-level') }}
+    {{ render_field(form.email, class='input-block-level') }}
+    {{ render_field(form.password, class='input-block-level') }}
+    {{ render_field(form.confirm, class='input-block-level') }}
     {{ render_submit('注册') }}
+    <hr />
+    <div>
+        <p>已有帐号?<a href="{{ url_for('account.signin') }}">登录</a></p>
+    </div>
 </form>
 </div>
 {% endblock %}
