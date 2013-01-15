@@ -9,7 +9,7 @@
         </a>
         <div class="media-body">
             <a href="{{ url_for('timeline.closet', uid=user['id']) }}"><h4 class="media-heading">{{ user['username'] }}</h4></a>
-            <p>{{ user['about'] }}</p>
+            <p>{{ user['about']|default('', true) }}</p>
         </div>
     </div>
     {% endfor %}
