@@ -49,6 +49,9 @@ class SignupForm(Form):
                     'password': generate_password_hash(self.password.data),
                     'email': self.email.data,
                     'photo': self.photo.data or current_app.config['DEFAULT_PROFILE_IMAGE'],
+                    'about': '',
+                    'website': '',
+                    'city': '',
                     'token': token,
                     'created_at': time.time()}
 
@@ -139,15 +142,14 @@ class ProfileForm(Form):
             raise ValueError("该用户名已注册")
 
     def save(self):
-        user = g.user
-        user.update(self.data)
-        current_app.redis.hmset('user:%s'%g.user['id'], user)
-
-        if g.user['username'] != user['username']:
-            current_app.redis.set('uname:%s:uid'%user['username'], user['id'])
+        if g.user['username'] != self.username.data:
+            current_app.redis.set('uname:%s:uid'%self.username.data, g.user['id'])
             current_app.redis.delete('uname:%s:uid'%g.user['username'])
 
-        return user
+        g.user.update(self.data)
+        current_app.redis.hmset('user:%s'%g.user['id'], g.user)
+
+        return g.user
 
 class API_ProfileForm(ProfileForm):
 

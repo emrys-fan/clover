@@ -1,4 +1,4 @@
-{% macro render_field(field, value=None) %}
+{% macro render_field(field) %}
 {% if field.errors %}
 <ul class=errors>
     {% for error in field.errors %}

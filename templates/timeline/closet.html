@@ -9,10 +9,10 @@
         </a>
         </div>
         <div class="profile-content">
-            <h1>{{ user['username'] }}</h1>
-            <p class="words">{{ user['words'] }}</p>
+            <h4>{{ user['username'] }}</h4>
+            <div class="user-descrption">{{ user['about']|default('', true) }}</div>
             <div class="pipe-wrapper">
-                <ul class="pipe nobullet">
+                <ul class="inline">
                     <li><a href="#"><strong>{{ user['listing_count'] }}</strong></br>宝贝</a></li>
                     <li><a href="{{ url_for('account.following', uid=user['id']) }}"><strong>{{ user['following_count'] }}</strong></br>粉丝</a></li>
                     <li><a href="{{ url_for('account.follower', uid=user['id']) }}"><strong>{{ user['followed_count'] }}</strong></br>关注</a></li>

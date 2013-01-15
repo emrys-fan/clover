@@ -200,8 +200,10 @@ def setting():
     if form.validate_on_submit():
         form.save()
         flash("修改配置成功")
-        return redirect(url_for('timeline.closet'))
+        return redirect(url_for('timeline.closet', uid=g.user['id']))
 
+    # no way to prepopulate textarea, so do it manully
+    form.about.data=g.user.get('about','')
     return render_template('account/setting.html', form=form)
 
 

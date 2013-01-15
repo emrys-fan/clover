@@ -73,7 +73,7 @@ def closet(uid):
     page += 1
     user_timeline = get_timeline(recent_postids)
 
-    fields = ['id', 'username', 'photo']
+    fields = ['id', 'username', 'photo', 'about']
     user = current_app.redis.hmget('user:%s'%uid, fields)
     user = dict(zip(fields, user))
 
